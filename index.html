@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ジュニア大賞 交換先登録リスト</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f7f7f7;
+  color: #111;
+  font-family: "Meiryo UI", Meiryo, sans-serif;
+}
+
+header {
+  background: #b40000;
+  color: white;
+  padding: 26px 15px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 25px;
+}
+
+header p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  opacity: .95;
+}
+
+main {
+  width: min(100% - 24px, 1000px);
+  margin: 24px auto 60px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+h2 {
+  font-size: 19px;
+  margin: 0 0 16px;
+  padding-left: 10px;
+  border-left: 5px solid #b40000;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr .7fr;
+  gap: 12px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  background: #fff;
+}
+
+input:focus {
+  outline: 2px solid #b40000;
+  border-color: #b40000;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.register-button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #b40000;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.register-button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.result {
+  margin-top: 18px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  min-height: 58px;
+  background: #fafafa;
+}
+
+.result.success {
+  border-color: #2f7d32;
+  background: #f2fff3;
+}
+
+.result.warning {
+  border-color: #b40000;
+  background: #fff5f5;
+}
+
+.result-title {
+  font-weight: bold;
+}
+
+.previous-list {
+  margin-top: 14px;
+}
+
+.previous-item {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.note {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.7;
+  margin-top: 12px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+th {
+  background: #111;
+  color: white;
+  font-size: 13px;
+  padding: 11px 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  border-bottom: 1px solid #ddd;
+  padding: 11px 8px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: #fafafa;
+}
+
+.deleted-row td {
+  color: #888;
+  text-decoration: line-through;
+}
+
+.deleted-row .status-cell {
+  text-decoration: none;
+}
+
+.status-active {
+  display: inline-block;
+  color: #166534;
+  background: #dcfce7;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.status-deleted {
+  display: inline-block;
+  color: #991b1b;
+  background: #fee2e2;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.delete-button {
+  border: 1px solid #b40000;
+  color: #b40000;
+  background: white;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-weight: bold;
+}
+
+.delete-button:hover {
+  background: #fff0f0;
+}
+
+.empty {
+  color: #777;
+  text-align: center;
+  padding: 20px;
+}
+
+.loading {
+  color: #777;
+  text-align: center;
+  padding: 15px;
+}
+
+.small-count {
+  font-size: 13px;
+  font-weight: normal;
+  color: #666;
+  margin-left: 6px;
+}
+
+footer {
+  text-align: center;
+  color: #777;
+  font-size: 11px;
+  padding: 10px 20px 35px;
+}
+
+@media (max-width: 700px) {
+  header {
+    padding: 22px 12px;
+  }
+
+  header h1 {
+    font-size: 21px;
+  }
+
+  main {
+    width: min(100% - 18px, 1000px);
+    margin-top: 14px;
+  }
+
+  .card {
+    padding: 15px;
+    border-radius: 11px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  h2 {
+    font-size: 17px;
+  }
+
+  table {
+    min-width: 720px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>ジュニア大賞 交換先登録リスト</h1>
+  <p>交換先情報の共有・重複確認用</p>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>交換先を登録</h2>
+
+    <div class="form-grid">
+      <div>
+        <label for="username">Xユーザー名</label>
+        <input
+          id="username"
+          type="text"
+          placeholder="@username"
+          autocomplete="off"
+        >
+      </div>
+
+      <div>
+        <label for="person">担当</label>
+        <input
+          id="person"
+          type="text"
+          placeholder="例：元木湧"
+          autocomplete="off"
+        >
+      </div>
+
+      <div>
+        <label for="category">部門</label>
+        <input
+          id="category"
+          type="text"
+          placeholder="部門名"
+          autocomplete="off"
+        >
+      </div>
+
+      <div>
+        <label for="votes">交換票数</label>
+        <input
+          id="votes"
+          type="number"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          placeholder="例：10"
+        >
+      </div>
+    </div>
+
+    <button
+      id="registerButton"
+      class="register-button"
+      onclick="registerData()"
+    >
+      登録する
+    </button>
+
+    <div id="result" class="result">
+      <div class="result-title">
+        登録すると、ここに重複チェック結果が表示されます。
+      </div>
+    </div>
+
+    <div class="note">
+      ※ログイン不要・匿名で登録できます。<br>
+      ※同じXユーザー名が過去に登録されている場合、削除済みの履歴を含めて重複として表示します。
+    </div>
+  </section>
+
+
+  <section class="card">
+    <h2>
+      自分が登録した情報
+      <span id="myCount" class="small-count"></span>
+    </h2>
+
+    <div class="note" style="margin-top:-7px;margin-bottom:14px;">
+      このブラウザから登録した情報だけ表示されます。
+      ブラウザの保存データを削除した場合や別端末では、自分の登録として判別できなくなります。
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>登録日時</th>
+            <th>Xユーザー名</th>
+            <th>担当</th>
+            <th>部門</th>
+            <th>交換票数</th>
+            <th>状態</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="myTable">
+          <tr>
+            <td colspan="7" class="loading">読み込み中...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <section class="card">
+    <h2>
+      みんなの登録情報
+      <span id="allCount" class="small-count"></span>
+    </h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>登録日時</th>
+            <th>Xユーザー名</th>
+            <th>担当</th>
+            <th>部門</th>
+            <th>交換票数</th>
+            <th>状態</th>
+          </tr>
+        </thead>
+        <tbody id="allTable">
+          <tr>
+            <td colspan="6" class="loading">読み込み中...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  非公式の交換情報共有用サイトです。
+</footer>
+
+
+<script>
+const API_URL =
+  'https://script.google.com/macros/s/AKfycbz8kD3LjyLRvJBK5CHSb5GgP_7hYsQCC5CnBArhYQ_8AIdf5Xf0u7V4p1Q7K5jKpg968Q/exec';
+
+
+// ----------------------------
+// 匿名端末ID
+// ----------------------------
+
+function getAnonymousId() {
+  let id = localStorage.getItem('juniorAwardAnonymousId');
+
+  if (!id) {
+    if (window.crypto && crypto.randomUUID) {
+      id = crypto.randomUUID();
+    } else {
+      id =
+        Date.now().toString(36) +
+        Math.random().toString(36).substring(2);
+    }
+
+    localStorage.setItem(
+      'juniorAwardAnonymousId',
+      id
+    );
+  }
+
+  return id;
+}
+
+
+// ----------------------------
+// 安全な文字表示
+// ----------------------------
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+
+// ----------------------------
+// 登録
+// ----------------------------
+
+async function registerData() {
+
+  const username =
+    document.getElementById('username').value.trim();
+
+  const person =
+    document.getElementById('person').value.trim();
+
+  const category =
+    document.getElementById('category').value.trim();
+
+  const votes =
+    document.getElementById('votes').value.trim();
+
+  const result =
+    document.getElementById('result');
+
+  const button =
+    document.getElementById('registerButton');
+
+
+  if (!username || !person || !category || !votes) {
+    result.className = 'result warning';
+    result.innerHTML =
+      '<div class="result-title">⚠️ すべての項目を入力してください。</div>';
+    return;
+  }
+
+  if (
+    !Number.isInteger(Number(votes)) ||
+    Number(votes) <= 0
+  ) {
+    result.className = 'result warning';
+    result.innerHTML =
+      '<div class="result-title">⚠️ 交換票数は1以上の整数で入力してください。</div>';
+    return;
+  }
+
+
+  button.disabled = true;
+  button.textContent = '登録中...';
+
+  result.className = 'result';
+  result.innerHTML =
+    '<div class="loading">登録しています...</div>';
+
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'register',
+        username: username,
+        person: person,
+        category: category,
+        votes: Number(votes),
+        anonymousId: getAnonymousId()
+      })
+    });
+
+    const data = await response.json();
+
+
+    if (!data.success) {
+      throw new Error(
+        data.message || '登録に失敗しました。'
+      );
+    }
+
+
+    if (data.duplicate) {
+
+      let previousHtml = '';
+
+      data.previousData.forEach(item => {
+
+        const deleted =
+          item.status === '削除済み';
+
+        previousHtml += `
+          <div class="previous-item"
+               style="${deleted ? 'text-decoration:line-through;color:#777;' : ''}">
+            <strong>${escapeHtml(item.username)}</strong><br>
+            担当：${escapeHtml(item.person)}<br>
+            部門：${escapeHtml(item.category)}<br>
+            交換票数：${escapeHtml(item.votes)}票<br>
+            登録日時：${escapeHtml(item.registeredAt)}
+            ${deleted
+              ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>'
+              : ''
+            }
+          </div>
+        `;
+      });
+
+
+      result.className = 'result warning';
+
+      result.innerHTML = `
+        <div class="result-title">
+          ⚠️ このユーザー名は重複しています
+        </div>
+
+        <div style="margin-top:6px;font-size:13px;">
+          今回の登録は完了しています。
+          過去に ${data.duplicateCount}件 の登録があります。
+        </div>
+
+        <div class="previous-list">
+          <strong>過去に登録されたデータ</strong>
+          ${previousHtml}
+        </div>
+      `;
+
+    } else {
+
+      result.className = 'result success';
+
+      result.innerHTML = `
+        <div class="result-title">
+          ✅ 現時点で重複はありません！
+        </div>
+        <div style="font-size:13px;margin-top:5px;">
+          登録が完了しました。
+        </div>
+      `;
+    }
+
+
+    document.getElementById('username').value = '';
+    document.getElementById('person').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('votes').value = '';
+
+    await loadAll();
+    await loadMine();
+
+
+  } catch (error) {
+
+    result.className = 'result warning';
+
+    result.innerHTML = `
+      <div class="result-title">
+        ⚠️ ${escapeHtml(error.message)}
+      </div>
+    `;
+
+  } finally {
+
+    button.disabled = false;
+    button.textContent = '登録する';
+  }
+}
+
+
+// ----------------------------
+// 全登録一覧
+// ----------------------------
+
+async function loadAll() {
+
+  const tbody =
+    document.getElementById('allTable');
+
+  try {
+
+    const response =
+      await fetch(API_URL + '?action=list');
+
+    const result =
+      await response.json();
+
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+
+    const data = result.data || [];
+
+    document.getElementById('allCount').textContent =
+      `（${data.length}件）`;
+
+
+    if (data.length === 0) {
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">
+            まだ登録はありません。
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+
+    tbody.innerHTML = data.map(item => {
+
+      const deleted =
+        item.status === '削除済み';
+
+      return `
+        <tr class="${deleted ? 'deleted-row' : ''}">
+          <td>${escapeHtml(item.registeredAt)}</td>
+          <td><strong>${escapeHtml(item.username)}</strong></td>
+          <td>${escapeHtml(item.person)}</td>
+          <td>${escapeHtml(item.category)}</td>
+          <td>${escapeHtml(item.votes)}票</td>
+
+          <td class="status-cell">
+            ${
+              deleted
+              ? '<span class="status-deleted">削除済み</span>'
+              : '<span class="status-active">登録中</span>'
+            }
+          </td>
+        </tr>
+      `;
+
+    }).join('');
+
+
+  } catch (error) {
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty">
+          データを読み込めませんでした。
+        </td>
+      </tr>
+    `;
+  }
+}
+
+
+// ----------------------------
+// 自分の登録一覧
+// ----------------------------
+
+async function loadMine() {
+
+  const tbody =
+    document.getElementById('myTable');
+
+  try {
+
+    const url =
+      API_URL +
+      '?action=my&anonymousId=' +
+      encodeURIComponent(getAnonymousId());
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+
+    const data = result.data || [];
+
+    document.getElementById('myCount').textContent =
+      `（${data.length}件）`;
+
+
+    if (data.length === 0) {
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty">
+            このブラウザからの登録はまだありません。
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+
+    tbody.innerHTML = data.map(item => {
+
+      const deleted =
+        item.status === '削除済み';
+
+      return `
+        <tr class="${deleted ? 'deleted-row' : ''}">
+
+          <td>${escapeHtml(item.registeredAt)}</td>
+
+          <td>
+            <strong>
+              ${escapeHtml(item.username)}
+            </strong>
+          </td>
+
+          <td>${escapeHtml(item.person)}</td>
+
+          <td>${escapeHtml(item.category)}</td>
+
+          <td>${escapeHtml(item.votes)}票</td>
+
+          <td class="status-cell">
+            ${
+              deleted
+              ? '<span class="status-deleted">削除済み</span>'
+              : '<span class="status-active">登録中</span>'
+            }
+          </td>
+
+          <td class="status-cell">
+            ${
+              deleted
+              ? '―'
+              : `
+                <button
+                  class="delete-button"
+                  onclick="deleteRegistration('${item.registrationId}')"
+                >
+                  削除
+                </button>
+              `
+            }
+          </td>
+
+        </tr>
+      `;
+
+    }).join('');
+
+
+  } catch (error) {
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty">
+          データを読み込めませんでした。
+        </td>
+      </tr>
+    `;
+  }
+}
+
+
+// ----------------------------
+// 削除
+// ----------------------------
+
+async function deleteRegistration(registrationId) {
+
+  const ok = confirm(
+    'この登録を削除しますか？\n\n削除後も履歴は残り、重複チェックの対象になります。'
+  );
+
+  if (!ok) return;
+
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'delete',
+        registrationId: registrationId,
+        anonymousId: getAnonymousId()
+      })
+    });
+
+    const result = await response.json();
+
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+
+    await loadMine();
+    await loadAll();
+
+
+  } catch (error) {
+
+    alert(
+      '削除できませんでした。\n' +
+      error.message
+    );
+  }
+}
+
+
+// ----------------------------
+// 初期表示
+// ----------------------------
+
+document.addEventListener(
+  'DOMContentLoaded',
+  async () => {
+    getAnonymousId();
+
+    await Promise.all([
+      loadAll(),
+      loadMine()
+    ]);
+  }
+);
+
+</script>
+
+</body>
+</html>
