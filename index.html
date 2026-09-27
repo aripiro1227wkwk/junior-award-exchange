@@ -33,7 +33,6 @@ header h1 {
 header p {
   margin: 8px 0 0;
   font-size: 13px;
-  opacity: .95;
 }
 
 main {
@@ -48,6 +47,36 @@ main {
   padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+.notice {
+  background: #fff;
+  border: 2px solid #b40000;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+
+.notice-title {
+  color: #b40000;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.notice ul {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.notice li {
+  margin: 8px 0;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.notice strong {
+  color: #b40000;
 }
 
 h2 {
@@ -77,17 +106,12 @@ input {
   border-radius: 8px;
   font-family: inherit;
   font-size: 16px;
-  background: #fff;
+  background: white;
 }
 
 input:focus {
   outline: 2px solid #b40000;
   border-color: #b40000;
-}
-
-button {
-  font-family: inherit;
-  cursor: pointer;
 }
 
 .register-button {
@@ -98,8 +122,10 @@ button {
   border-radius: 8px;
   background: #b40000;
   color: white;
+  font-family: inherit;
   font-size: 16px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .register-button:disabled {
@@ -147,12 +173,29 @@ button {
 .note {
   font-size: 12px;
   color: #666;
-  line-height: 1.7;
+  line-height: 1.8;
   margin-top: 12px;
+}
+
+.important-note {
+  margin-top: 14px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.table-guide {
+  display: none;
+  font-size: 11px;
+  color: #777;
+  margin-bottom: 10px;
 }
 
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -216,23 +259,16 @@ tbody tr:hover {
   background: white;
   border-radius: 6px;
   padding: 6px 10px;
+  font-family: inherit;
   font-weight: bold;
+  cursor: pointer;
 }
 
-.delete-button:hover {
-  background: #fff0f0;
-}
-
-.empty {
-  color: #777;
-  text-align: center;
-  padding: 20px;
-}
-
+.empty,
 .loading {
   color: #777;
   text-align: center;
-  padding: 15px;
+  padding: 20px;
 }
 
 .small-count {
@@ -246,6 +282,7 @@ footer {
   text-align: center;
   color: #777;
   font-size: 11px;
+  line-height: 1.8;
   padding: 10px 20px 35px;
 }
 
@@ -263,9 +300,18 @@ footer {
     margin-top: 14px;
   }
 
-  .card {
+  .card,
+  .notice {
     padding: 15px;
     border-radius: 11px;
+  }
+
+  .notice-title {
+    font-size: 17px;
+  }
+
+  .notice li {
+    font-size: 13px;
   }
 
   .form-grid {
@@ -275,6 +321,10 @@ footer {
 
   h2 {
     font-size: 17px;
+  }
+
+  .table-guide {
+    display: block;
   }
 
   table {
@@ -293,155 +343,202 @@ footer {
 
 <main>
 
-  <section class="card">
-    <h2>交換先を登録</h2>
+<section class="notice">
+  <div class="notice-title">⚠️ ご利用にあたって</div>
 
-    <div class="form-grid">
-      <div>
-        <label for="username">Xユーザー名</label>
-        <input
-          id="username"
-          type="text"
-          placeholder="@username"
-          autocomplete="off"
-        >
-      </div>
+  <ul>
+    <li><strong>大賞オプチャ内のみ使用可能</strong></li>
 
-      <div>
-        <label for="person">担当</label>
-        <input
-          id="person"
-          type="text"
-          placeholder="例：元木湧"
-          autocomplete="off"
-        >
-      </div>
+    <li>
+      <strong>大賞オプチャ外への情報漏洩は厳禁です</strong>
+    </li>
 
-      <div>
-        <label for="category">部門</label>
-        <input
-          id="category"
-          type="text"
-          placeholder="部門名"
-          autocomplete="off"
-        >
-      </div>
+    <li>
+      万が一、誤送信のものを削除したい場合は、
+      Xの <strong>@mtkwk_info1126</strong> に
+      ご自身の登録情報をすべてスクショし、
+      削除理由を記載してご連絡ください。
+    </li>
+  </ul>
+</section>
 
-      <div>
-        <label for="votes">交換票数</label>
-        <input
-          id="votes"
-          type="number"
-          min="1"
-          step="1"
-          inputmode="numeric"
-          placeholder="例：10"
-        >
-      </div>
+
+<section class="card">
+  <h2>交換先を登録</h2>
+
+  <div class="form-grid">
+
+    <div>
+      <label for="username">Xユーザー名</label>
+      <input
+        id="username"
+        type="text"
+        placeholder="例：@mtkwk_info1126"
+        autocomplete="off"
+      >
     </div>
 
-    <button
-      id="registerButton"
-      class="register-button"
-      onclick="registerData()"
-    >
-      登録する
-    </button>
-
-    <div id="result" class="result">
-      <div class="result-title">
-        登録すると、ここに重複チェック結果が表示されます。
-      </div>
+    <div>
+      <label for="person">担当</label>
+      <input
+        id="person"
+        type="text"
+        placeholder="担当を入力"
+        autocomplete="off"
+      >
     </div>
 
-    <div class="note">
-      ※ログイン不要・匿名で登録できます。<br>
-      ※同じXユーザー名が過去に登録されている場合、削除済みの履歴を含めて重複として表示します。
-    </div>
-  </section>
-
-
-  <section class="card">
-    <h2>
-      自分が登録した情報
-      <span id="myCount" class="small-count"></span>
-    </h2>
-
-    <div class="note" style="margin-top:-7px;margin-bottom:14px;">
-      このブラウザから登録した情報だけ表示されます。
-      ブラウザの保存データを削除した場合や別端末では、自分の登録として判別できなくなります。
+    <div>
+      <label for="category">部門</label>
+      <input
+        id="category"
+        type="text"
+        placeholder="部門を入力"
+        autocomplete="off"
+      >
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>登録日時</th>
-            <th>Xユーザー名</th>
-            <th>担当</th>
-            <th>部門</th>
-            <th>交換票数</th>
-            <th>状態</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="myTable">
-          <tr>
-            <td colspan="7" class="loading">読み込み中...</td>
-          </tr>
-        </tbody>
-      </table>
+    <div>
+      <label for="votes">交換票数</label>
+      <input
+        id="votes"
+        type="number"
+        min="1"
+        step="1"
+        inputmode="numeric"
+        placeholder="例：10"
+      >
     </div>
-  </section>
 
+  </div>
 
-  <section class="card">
-    <h2>
-      みんなの登録情報
-      <span id="allCount" class="small-count"></span>
-    </h2>
+  <button
+    id="registerButton"
+    class="register-button"
+    onclick="registerData()"
+  >
+    登録する
+  </button>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>登録日時</th>
-            <th>Xユーザー名</th>
-            <th>担当</th>
-            <th>部門</th>
-            <th>交換票数</th>
-            <th>状態</th>
-          </tr>
-        </thead>
-        <tbody id="allTable">
-          <tr>
-            <td colspan="6" class="loading">読み込み中...</td>
-          </tr>
-        </tbody>
-      </table>
+  <div id="result" class="result">
+    <div class="result-title">
+      登録すると、ここに重複チェック結果が表示されます。
     </div>
-  </section>
+  </div>
+
+  <div class="important-note">
+    ・ログイン不要・匿名で登録できます。<br>
+    ・担当、部門は自由入力です。<br>
+    ・交換票数は1以上の数字で入力してください。<br>
+    ・同じXユーザー名が過去に登録されている場合、
+    削除済みの履歴を含めて重複として表示します。
+  </div>
+</section>
+
+
+<section class="card">
+  <h2>
+    自分が登録した情報
+    <span id="myCount" class="small-count"></span>
+  </h2>
+
+  <div class="note" style="margin-top:-7px;margin-bottom:14px;">
+    このブラウザから登録した情報だけ表示されます。<br>
+    自分が登録した情報のみ「削除」できます。削除後も登録履歴は残り、
+    重複チェックの対象になります。<br>
+    ブラウザの保存データを削除した場合や別端末・別ブラウザでは、
+    自分の登録として判別できなくなります。
+  </div>
+
+  <div class="table-guide">
+    ← 表は左右にスクロールできます →
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>登録日時</th>
+          <th>Xユーザー名</th>
+          <th>担当</th>
+          <th>部門</th>
+          <th>交換票数</th>
+          <th>状態</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+
+      <tbody id="myTable">
+        <tr>
+          <td colspan="7" class="loading">読み込み中...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<section class="card">
+  <h2>
+    みんなの登録情報
+    <span id="allCount" class="small-count"></span>
+  </h2>
+
+  <div class="note" style="margin-top:-7px;margin-bottom:14px;">
+    登録された情報を新しい順に表示しています。
+    削除済みの登録も履歴として表示されます。
+  </div>
+
+  <div class="table-guide">
+    ← 表は左右にスクロールできます →
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>登録日時</th>
+          <th>Xユーザー名</th>
+          <th>担当</th>
+          <th>部門</th>
+          <th>交換票数</th>
+          <th>状態</th>
+        </tr>
+      </thead>
+
+      <tbody id="allTable">
+        <tr>
+          <td colspan="6" class="loading">読み込み中...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
 </main>
 
 <footer>
-  非公式の交換情報共有用サイトです。
+  非公式の交換情報共有用サイトです。<br>
+  大賞オプチャ内のみでご利用ください。
 </footer>
 
 
 <script>
+
 const API_URL =
-  'https://script.google.com/macros/s/AKfycbz8kD3LjyLRvJBK5CHSb5GgP_7hYsQCC5CnBArhYQ_8AIdf5Xf0u7V4p1Q7K5jKpg968Q/exec';
+'https://script.google.com/macros/s/AKfycbz8kD3LjyLRvJBK5CHSb5GgP_7hYsQCC5CnBArhYQ_8AIdf5Xf0u7V4p1Q7K5jKpg968Q/exec';
+
+let isRegistering = false;
 
 
-// ----------------------------
 // 匿名端末ID
-// ----------------------------
-
 function getAnonymousId() {
-  let id = localStorage.getItem('juniorAwardAnonymousId');
+
+  let id =
+    localStorage.getItem('juniorAwardAnonymousId');
 
   if (!id) {
+
     if (window.crypto && crypto.randomUUID) {
       id = crypto.randomUUID();
     } else {
@@ -460,11 +557,9 @@ function getAnonymousId() {
 }
 
 
-// ----------------------------
-// 安全な文字表示
-// ----------------------------
-
+// HTML安全表示
 function escapeHtml(value) {
+
   return String(value ?? '')
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -474,11 +569,10 @@ function escapeHtml(value) {
 }
 
 
-// ----------------------------
 // 登録
-// ----------------------------
-
 async function registerData() {
+
+  if (isRegistering) return;
 
   const username =
     document.getElementById('username').value.trim();
@@ -500,27 +594,47 @@ async function registerData() {
 
 
   if (!username || !person || !category || !votes) {
+
     result.className = 'result warning';
+
     result.innerHTML =
       '<div class="result-title">⚠️ すべての項目を入力してください。</div>';
+
     return;
   }
+
 
   if (
     !Number.isInteger(Number(votes)) ||
     Number(votes) <= 0
   ) {
+
     result.className = 'result warning';
+
     result.innerHTML =
       '<div class="result-title">⚠️ 交換票数は1以上の整数で入力してください。</div>';
+
     return;
   }
 
 
+  const confirmed = confirm(
+    'この内容で登録しますか？\n\n' +
+    'Xユーザー名：' + username + '\n' +
+    '担当：' + person + '\n' +
+    '部門：' + category + '\n' +
+    '交換票数：' + votes + '票'
+  );
+
+  if (!confirmed) return;
+
+
+  isRegistering = true;
   button.disabled = true;
   button.textContent = '登録中...';
 
   result.className = 'result';
+
   result.innerHTML =
     '<div class="loading">登録しています...</div>';
 
@@ -559,14 +673,22 @@ async function registerData() {
           item.status === '削除済み';
 
         previousHtml += `
-          <div class="previous-item"
-               style="${deleted ? 'text-decoration:line-through;color:#777;' : ''}">
+          <div
+            class="previous-item"
+            style="${
+              deleted
+              ? 'text-decoration:line-through;color:#777;'
+              : ''
+            }"
+          >
             <strong>${escapeHtml(item.username)}</strong><br>
             担当：${escapeHtml(item.person)}<br>
             部門：${escapeHtml(item.category)}<br>
             交換票数：${escapeHtml(item.votes)}票<br>
             登録日時：${escapeHtml(item.registeredAt)}
-            ${deleted
+
+            ${
+              deleted
               ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>'
               : ''
             }
@@ -583,7 +705,7 @@ async function registerData() {
         </div>
 
         <div style="margin-top:6px;font-size:13px;">
-          今回の登録は完了しています。
+          今回の登録は完了しています。<br>
           過去に ${data.duplicateCount}件 の登録があります。
         </div>
 
@@ -601,6 +723,7 @@ async function registerData() {
         <div class="result-title">
           ✅ 現時点で重複はありません！
         </div>
+
         <div style="font-size:13px;margin-top:5px;">
           登録が完了しました。
         </div>
@@ -613,8 +736,10 @@ async function registerData() {
     document.getElementById('category').value = '';
     document.getElementById('votes').value = '';
 
-    await loadAll();
-    await loadMine();
+    await Promise.all([
+      loadAll(),
+      loadMine()
+    ]);
 
 
   } catch (error) {
@@ -629,16 +754,16 @@ async function registerData() {
 
   } finally {
 
-    button.disabled = false;
-    button.textContent = '登録する';
+    setTimeout(() => {
+      isRegistering = false;
+      button.disabled = false;
+      button.textContent = '登録する';
+    }, 1500);
   }
 }
 
 
-// ----------------------------
-// 全登録一覧
-// ----------------------------
-
+// 全登録
 async function loadAll() {
 
   const tbody =
@@ -678,30 +803,41 @@ async function loadAll() {
     }
 
 
-    tbody.innerHTML = data.map(item => {
+    tbody.innerHTML =
+      data.map(item => {
 
-      const deleted =
-        item.status === '削除済み';
+        const deleted =
+          item.status === '削除済み';
 
-      return `
-        <tr class="${deleted ? 'deleted-row' : ''}">
-          <td>${escapeHtml(item.registeredAt)}</td>
-          <td><strong>${escapeHtml(item.username)}</strong></td>
-          <td>${escapeHtml(item.person)}</td>
-          <td>${escapeHtml(item.category)}</td>
-          <td>${escapeHtml(item.votes)}票</td>
+        return `
+          <tr class="${deleted ? 'deleted-row' : ''}">
 
-          <td class="status-cell">
-            ${
-              deleted
-              ? '<span class="status-deleted">削除済み</span>'
-              : '<span class="status-active">登録中</span>'
-            }
-          </td>
-        </tr>
-      `;
+            <td>${escapeHtml(item.registeredAt)}</td>
 
-    }).join('');
+            <td>
+              <strong>
+                ${escapeHtml(item.username)}
+              </strong>
+            </td>
+
+            <td>${escapeHtml(item.person)}</td>
+
+            <td>${escapeHtml(item.category)}</td>
+
+            <td>${escapeHtml(item.votes)}票</td>
+
+            <td class="status-cell">
+              ${
+                deleted
+                ? '<span class="status-deleted">削除済み</span>'
+                : '<span class="status-active">登録中</span>'
+              }
+            </td>
+
+          </tr>
+        `;
+
+      }).join('');
 
 
   } catch (error) {
@@ -717,10 +853,7 @@ async function loadAll() {
 }
 
 
-// ----------------------------
-// 自分の登録一覧
-// ----------------------------
-
+// 自分の登録
 async function loadMine() {
 
   const tbody =
@@ -733,8 +866,11 @@ async function loadMine() {
       '?action=my&anonymousId=' +
       encodeURIComponent(getAnonymousId());
 
-    const response = await fetch(url);
-    const result = await response.json();
+    const response =
+      await fetch(url);
+
+    const result =
+      await response.json();
 
 
     if (!result.success) {
@@ -742,7 +878,8 @@ async function loadMine() {
     }
 
 
-    const data = result.data || [];
+    const data =
+      result.data || [];
 
     document.getElementById('myCount').textContent =
       `（${data.length}件）`;
@@ -762,55 +899,56 @@ async function loadMine() {
     }
 
 
-    tbody.innerHTML = data.map(item => {
+    tbody.innerHTML =
+      data.map(item => {
 
-      const deleted =
-        item.status === '削除済み';
+        const deleted =
+          item.status === '削除済み';
 
-      return `
-        <tr class="${deleted ? 'deleted-row' : ''}">
+        return `
+          <tr class="${deleted ? 'deleted-row' : ''}">
 
-          <td>${escapeHtml(item.registeredAt)}</td>
+            <td>${escapeHtml(item.registeredAt)}</td>
 
-          <td>
-            <strong>
-              ${escapeHtml(item.username)}
-            </strong>
-          </td>
+            <td>
+              <strong>
+                ${escapeHtml(item.username)}
+              </strong>
+            </td>
 
-          <td>${escapeHtml(item.person)}</td>
+            <td>${escapeHtml(item.person)}</td>
 
-          <td>${escapeHtml(item.category)}</td>
+            <td>${escapeHtml(item.category)}</td>
 
-          <td>${escapeHtml(item.votes)}票</td>
+            <td>${escapeHtml(item.votes)}票</td>
 
-          <td class="status-cell">
-            ${
-              deleted
-              ? '<span class="status-deleted">削除済み</span>'
-              : '<span class="status-active">登録中</span>'
-            }
-          </td>
+            <td class="status-cell">
+              ${
+                deleted
+                  ? '<span class="status-deleted">削除済み</span>'
+                  : '<span class="status-active">登録中</span>'
+              }
+            </td>
 
-          <td class="status-cell">
-            ${
-              deleted
-              ? '―'
-              : `
-                <button
-                  class="delete-button"
-                  onclick="deleteRegistration('${item.registrationId}')"
-                >
-                  削除
-                </button>
-              `
-            }
-          </td>
+            <td class="status-cell">
+              ${
+                deleted
+                  ? '―'
+                  : `
+                    <button
+                      class="delete-button"
+                      onclick="deleteRegistration('${item.registrationId}')"
+                    >
+                      削除
+                    </button>
+                  `
+              }
+            </td>
 
-        </tr>
-      `;
+          </tr>
+        `;
 
-    }).join('');
+      }).join('');
 
 
   } catch (error) {
@@ -826,14 +964,12 @@ async function loadMine() {
 }
 
 
-// ----------------------------
 // 削除
-// ----------------------------
-
 async function deleteRegistration(registrationId) {
 
   const ok = confirm(
-    'この登録を削除しますか？\n\n削除後も履歴は残り、重複チェックの対象になります。'
+    'この登録を削除しますか？\n\n' +
+    '削除後も登録履歴は残り、重複チェックの対象になります。'
   );
 
   if (!ok) return;
@@ -850,7 +986,8 @@ async function deleteRegistration(registrationId) {
       })
     });
 
-    const result = await response.json();
+    const result =
+      await response.json();
 
 
     if (!result.success) {
@@ -858,8 +995,10 @@ async function deleteRegistration(registrationId) {
     }
 
 
-    await loadMine();
-    await loadAll();
+    await Promise.all([
+      loadMine(),
+      loadAll()
+    ]);
 
 
   } catch (error) {
@@ -872,13 +1011,11 @@ async function deleteRegistration(registrationId) {
 }
 
 
-// ----------------------------
 // 初期表示
-// ----------------------------
-
 document.addEventListener(
   'DOMContentLoaded',
   async () => {
+
     getAnonymousId();
 
     await Promise.all([
