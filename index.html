@@ -99,7 +99,8 @@ label {
   margin-bottom: 6px;
 }
 
-input {
+input,
+select {
   width: 100%;
   padding: 12px;
   border: 1px solid #bbb;
@@ -109,7 +110,8 @@ input {
   background: white;
 }
 
-input:focus {
+input:focus,
+select:focus {
   outline: 2px solid #b40000;
   border-color: #b40000;
 }
@@ -390,12 +392,9 @@ footer {
 
     <div>
       <label for="category">部門</label>
-      <input
-        id="category"
-        type="text"
-        placeholder="部門を入力"
-        autocomplete="off"
-      >
+      <select id="category" disabled>
+        <option value="">部門を読み込み中...</option>
+      </select>
     </div>
 
     <div>
@@ -422,16 +421,19 @@ footer {
 
   <div id="result" class="result">
     <div class="result-title">
-      登録すると、ここに重複チェック結果が表示されます。
+      Xユーザー名＋部門の組み合わせで重複をチェックします。
     </div>
   </div>
 
   <div class="important-note">
-    ・ログイン不要・匿名で登録できます。<br>
-    ・担当、部門は自由入力です。<br>
-    ・交換票数は1以上の数字で入力してください。<br>
-    ・同じXユーザー名が過去に登録されている場合、
-    削除済みの履歴を含めて重複として表示します。
+    <strong>重複チェックについて</strong><br>
+    ・Xユーザー名と部門が両方一致した場合、重複として警告が表示されます。<br>
+    ・Xユーザー名が同じでも、部門が異なる場合は重複にはなりません。<br>
+    ・同じXユーザー名で別部門の登録がある場合は、参考情報としてチェック結果に表示されます。<br>
+    ・削除済みの登録も重複チェックの対象になります。<br><br>
+
+    <strong>部門について</strong><br>
+    ・部門はプルダウンから選択してください。
   </div>
 </section>
 
@@ -569,6 +571,29 @@ function escapeHtml(value) {
 }
 
 
+// 部門一覧をスプレッドシートから取得
+async function loadCategories() {
+  const select = document.getElementById('category');
+  try {
+    const response = await fetch(API_URL + '?action=categories');
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || '部門一覧を取得できませんでした。');
+    const categories = result.data || [];
+    if (categories.length === 0) {
+      select.innerHTML = '<option value="">部門が登録されていません</option>';
+      select.disabled = true;
+      return;
+    }
+    select.innerHTML = '<option value="">部門を選択してください</option>' +
+      categories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('');
+    select.disabled = false;
+  } catch (error) {
+    select.innerHTML = '<option value="">部門を読み込めませんでした</option>';
+    select.disabled = true;
+  }
+}
+
+
 // 登録
 async function registerData() {
 
@@ -664,70 +689,48 @@ async function registerData() {
 
 
     if (data.duplicate) {
-
       let previousHtml = '';
-
-      data.previousData.forEach(item => {
-
-        const deleted =
-          item.status === '削除済み';
-
+      (data.previousData || []).forEach(item => {
+        const deleted = item.status === '削除済み';
         previousHtml += `
-          <div
-            class="previous-item"
-            style="${
-              deleted
-              ? 'text-decoration:line-through;color:#777;'
-              : ''
-            }"
-          >
+          <div class="previous-item" style="${deleted ? 'text-decoration:line-through;color:#777;' : ''}">
             <strong>${escapeHtml(item.username)}</strong><br>
             担当：${escapeHtml(item.person)}<br>
             部門：${escapeHtml(item.category)}<br>
             交換票数：${escapeHtml(item.votes)}票<br>
             登録日時：${escapeHtml(item.registeredAt)}
-
-            ${
-              deleted
-              ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>'
-              : ''
-            }
-          </div>
-        `;
+            ${deleted ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>' : ''}
+          </div>`;
       });
-
-
       result.className = 'result warning';
-
       result.innerHTML = `
-        <div class="result-title">
-          ⚠️ このユーザー名は重複しています
-        </div>
-
-        <div style="margin-top:6px;font-size:13px;">
-          今回の登録は完了しています。<br>
-          過去に ${data.duplicateCount}件 の登録があります。
-        </div>
-
-        <div class="previous-list">
-          <strong>過去に登録されたデータ</strong>
-          ${previousHtml}
-        </div>
-      `;
-
-    } else {
-
+        <div class="result-title">⚠️ このユーザー名は、この部門ですでに登録されています</div>
+        <div style="margin-top:6px;font-size:13px;">今回の登録は完了しています。<br>同じユーザー名＋同じ部門の過去登録が ${data.duplicateCount}件 あります。</div>
+        <div class="previous-list"><strong>同じ部門の過去データ</strong>${previousHtml}</div>`;
+    } else if (data.hasOtherCategories) {
+      let otherHtml = '';
+      (data.otherCategoryData || []).forEach(item => {
+        const deleted = item.status === '削除済み';
+        otherHtml += `
+          <div class="previous-item" style="${deleted ? 'text-decoration:line-through;color:#777;' : ''}">
+            <strong>${escapeHtml(item.username)}</strong><br>
+            担当：${escapeHtml(item.person)}<br>
+            部門：${escapeHtml(item.category)}<br>
+            交換票数：${escapeHtml(item.votes)}票<br>
+            登録日時：${escapeHtml(item.registeredAt)}
+            ${deleted ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>' : ''}
+          </div>`;
+      });
       result.className = 'result success';
-
       result.innerHTML = `
-        <div class="result-title">
-          ✅ 現時点で重複はありません！
-        </div>
-
-        <div style="font-size:13px;margin-top:5px;">
-          登録が完了しました。
-        </div>
-      `;
+        <div class="result-title">✅ この部門での重複はありません！</div>
+        <div style="font-size:13px;margin-top:5px;">登録が完了しました。<br>なお、このXユーザー名は別部門で ${data.otherCategoryCount}件 の登録があります。</div>
+        <div class="previous-list"><strong>別部門の登録情報</strong>${otherHtml}</div>`;
+    } else {
+      result.className = 'result success';
+      result.innerHTML = `
+        <div class="result-title">✅ 現時点で重複はありません！</div>
+        <div style="font-size:13px;margin-top:5px;">登録が完了しました。</div>`;
     }
 
 
@@ -737,6 +740,7 @@ async function registerData() {
     document.getElementById('votes').value = '';
 
     await Promise.all([
+      loadCategories(),
       loadAll(),
       loadMine()
     ]);
