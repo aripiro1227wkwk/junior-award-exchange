@@ -735,6 +735,7 @@ async function saveEdit(id,catEncoded){
 }catch(e){
   alert('変更できませんでした。\n' + e.message);
 }
+｝
 async function confirmRegistration(id,catEncoded){
  const category=decodeURIComponent(catEncoded);
  const row=document.getElementById('editrow-'+id),reasonEl=document.getElementById('edit-reason-'+id);
