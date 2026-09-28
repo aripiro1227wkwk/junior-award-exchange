@@ -384,6 +384,21 @@ footer {
   }
 }
 
+
+/* update */
+textarea{width:100%;padding:12px;border:1px solid #bbb;border-radius:8px;font-family:inherit;font-size:16px;background:white;resize:vertical}
+textarea:focus{outline:2px solid #b40000;border-color:#b40000}
+.edit-button,.confirm-button{border:1px solid #111;background:white;color:#111;border-radius:6px;padding:6px 10px;font-family:inherit;font-weight:bold;cursor:pointer;margin:2px}
+.confirm-button{border-color:#166534;color:#166534}
+.confirmed-badge{display:inline-block;color:#1f2937;background:#e5e7eb;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:bold}
+.filter-box{margin:12px 0 14px;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fafafa}
+.filter-title{font-size:13px;font-weight:bold;margin-bottom:8px}
+.filter-options{display:flex;flex-wrap:wrap;gap:8px 14px}
+.filter-option{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:normal;margin:0}
+.filter-option input{width:auto;margin:0}
+.edit-box{margin-top:8px;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;min-width:250px}
+.edit-box input,.edit-box textarea{margin-top:5px}
+.edit-actions{margin-top:8px;display:flex;gap:6px}
 </style>
 </head>
 
@@ -469,6 +484,10 @@ footer {
         autocomplete="off"
       >
     </div>
+    <div style="grid-column:1 / -1;">
+      <label for="reason">理由（登録時は任意・確定時は必須）</label>
+      <textarea id="reason" rows="3" placeholder="理由を入力（あとから編集できます）"></textarea>
+    </div>
 
   </div>
 
@@ -507,6 +526,8 @@ footer {
 
   <div class="note" style="margin-top:-7px;margin-bottom:14px;">
     このブラウザから登録した情報だけ表示されます。<br>
+    自分が登録した情報は、確定前なら「コメント」「理由」を編集できます。<br>
+    「確定」には理由の入力が必要です。確定後は自分では編集できません。<br>
     自分が登録した情報のみ「削除」できます。削除後も登録履歴は残り、
     重複チェックの対象になります。<br>
     ブラウザの保存データを削除した場合や別端末・別ブラウザでは、
@@ -534,7 +555,9 @@ footer {
           <th>部門</th>
           <th>交換票数</th>
           <th>コメント</th>
+          <th>理由</th>
           <th>状態</th>
+          <th>確定</th>
           <th>操作</th>
         </tr>
       </thead>
@@ -567,6 +590,11 @@ footer {
     </div>
   </div>
 
+  <div class="filter-box">
+    <div class="filter-title">部門で絞り込み</div>
+    <div id="categoryFilters" class="filter-options"><span class="loading" style="padding:0;">読み込み中...</span></div>
+  </div>
+
   <div class="table-guide">
     ← 表は左右にスクロールできます →
   </div>
@@ -581,7 +609,9 @@ footer {
           <th>部門</th>
           <th>交換票数</th>
           <th>コメント</th>
+          <th>理由</th>
           <th>状態</th>
+          <th>確定</th>
         </tr>
       </thead>
 
@@ -603,559 +633,134 @@ footer {
 
 
 <script>
+const API_URL='https://script.google.com/macros/s/AKfycbz8kD3LjyLRvJBK5CHSb5GgP_7hYsQCC5CnBArhYQ_8AIdf5Xf0u7V4p1Q7K5jKpg968Q/exec';
+let isRegistering=false, allPublicData=[], categoryList=[];
 
-const API_URL =
-'https://script.google.com/macros/s/AKfycbz8kD3LjyLRvJBK5CHSb5GgP_7hYsQCC5CnBArhYQ_8AIdf5Xf0u7V4p1Q7K5jKpg968Q/exec';
+function getAnonymousId(){
+ let id=localStorage.getItem('juniorAwardAnonymousId');
+ if(!id){id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).substring(2);localStorage.setItem('juniorAwardAnonymousId',id)}
+ return id;
+}
+function escapeHtml(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}
+async function postApi(payload){const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(payload)});return await r.json()}
 
-let isRegistering = false;
-
-
-// 匿名端末ID
-function getAnonymousId() {
-
-  let id =
-    localStorage.getItem('juniorAwardAnonymousId');
-
-  if (!id) {
-
-    if (window.crypto && crypto.randomUUID) {
-      id = crypto.randomUUID();
-    } else {
-      id =
-        Date.now().toString(36) +
-        Math.random().toString(36).substring(2);
-    }
-
-    localStorage.setItem(
-      'juniorAwardAnonymousId',
-      id
-    );
-  }
-
-  return id;
+async function loadCategories(){
+ const select=document.getElementById('category');
+ try{
+  const r=await fetch(API_URL+'?action=categories'),x=await r.json();
+  if(!x.success)throw new Error(x.message||'部門一覧を取得できませんでした。');
+  categoryList=x.data||[];
+  if(!categoryList.length){select.innerHTML='<option value="">部門が登録されていません</option>';select.disabled=true;renderCategoryFilters();return}
+  select.innerHTML='<option value="">部門を選択してください</option>'+categoryList.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  select.disabled=false;renderCategoryFilters();
+ }catch(e){select.innerHTML='<option value="">部門を読み込めませんでした</option>';select.disabled=true;renderCategoryFilters()}
+}
+function renderCategoryFilters(){
+ const b=document.getElementById('categoryFilters');if(!b)return;
+ if(!categoryList.length){b.innerHTML='<span class="note">部門を読み込めませんでした。</span>';return}
+ b.innerHTML=categoryList.map(c=>`<label class="filter-option"><input type="checkbox" class="category-filter" value="${escapeHtml(c)}" onchange="renderAllTable()"> ${escapeHtml(c)}</label>`).join('');
+}
+function selectedCategories(){return Array.from(document.querySelectorAll('.category-filter:checked')).map(e=>e.value)}
+async function checkSimilarReason(reason,category,registrationId=''){
+ if(!String(reason||'').trim())return {success:true,similar:false,count:0,data:[]};
+ return await postApi({action:'checkReason',reason,category,registrationId});
 }
 
+async function registerData(){
+ if(isRegistering)return;
+ const username=document.getElementById('username').value.trim(),person=document.getElementById('person').value.trim(),category=document.getElementById('category').value.trim(),votes=document.getElementById('votes').value.trim(),comment=document.getElementById('comment').value.trim(),reason=document.getElementById('reason').value.trim(),result=document.getElementById('result'),button=document.getElementById('registerButton');
+ if(!username||!person||!category||!votes){result.className='result warning';result.innerHTML='<div class="result-title">⚠️ 必須項目を入力してください。</div>';return}
+ if(!Number.isInteger(Number(votes))||Number(votes)<=0){result.className='result warning';result.innerHTML='<div class="result-title">⚠️ 交換票数は1以上の整数で入力してください。</div>';return}
+ if(reason){try{const x=await checkSimilarReason(reason,category);if(!x.success)throw new Error(x.message||'理由の確認に失敗しました。');if(x.similar&&!confirm('⚠️ 理由が似ています。このまま登録しますか？'))return}catch(e){result.className='result warning';result.innerHTML=`<div class="result-title">⚠️ ${escapeHtml(e.message)}</div>`;return}}
+ if(!confirm('この内容で登録しますか？
 
-// HTML安全表示
-function escapeHtml(value) {
-
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
+Xユーザー名：'+username+'
+担当：'+person+'
+部門：'+category+'
+交換票数：'+votes+'票
+コメント：'+(comment||'なし')+'
+理由：'+(reason||'未入力')))return;
+ isRegistering=true;button.disabled=true;button.textContent='登録中...';result.className='result';result.innerHTML='<div class="loading">登録しています...</div>';
+ try{
+  const d=await postApi({action:'register',username,person,category,votes:Number(votes),comment,reason,anonymousId:getAnonymousId()});
+  if(!d.success)throw new Error(d.message||'登録に失敗しました。');
+  if(d.duplicate){
+   let h='';(d.previousData||[]).forEach(i=>{const del=i.status==='削除済み';h+=`<div class="previous-item" style="${del?'text-decoration:line-through;color:#777;':''}"><strong>${escapeHtml(i.username)}</strong><br>担当：${escapeHtml(i.person)}<br>部門：${escapeHtml(i.category)}<br>交換票数：${escapeHtml(i.votes)}票<br>コメント：${escapeHtml(i.comment||'なし')}<br>理由：${escapeHtml(i.reason||'未入力')}<br>登録日時：${escapeHtml(i.registeredAt)}${del?'<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>':''}</div>`});
+   result.className='result warning';result.innerHTML=`<div class="result-title">⚠️ このユーザー名は、この部門ですでに登録されています</div><div style="margin-top:6px;font-size:13px;">今回の登録は完了しています。<br>同じユーザー名＋同じ部門の過去登録が ${d.duplicateCount}件 あります。</div><div class="previous-list"><strong>同じ部門の過去データ</strong>${h}</div>`;
+  }else if(d.hasOtherCategories){
+   let h='';(d.otherCategoryData||[]).forEach(i=>{const del=i.status==='削除済み';h+=`<div class="previous-item" style="${del?'text-decoration:line-through;color:#777;':''}"><strong>${escapeHtml(i.username)}</strong><br>担当：${escapeHtml(i.person)}<br>部門：${escapeHtml(i.category)}<br>交換票数：${escapeHtml(i.votes)}票<br>コメント：${escapeHtml(i.comment||'なし')}<br>理由：${escapeHtml(i.reason||'未入力')}<br>登録日時：${escapeHtml(i.registeredAt)}${del?'<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>':''}</div>`});
+   result.className='result success';result.innerHTML=`<div class="result-title">✅ この部門での重複はありません！</div><div style="font-size:13px;margin-top:5px;">登録が完了しました。<br>なお、このXユーザー名は別部門で ${d.otherCategoryCount}件 の登録があります。</div><div class="previous-list"><strong>別部門の登録情報</strong>${h}</div>`;
+  }else{result.className='result success';result.innerHTML='<div class="result-title">✅ 現時点で重複はありません！</div><div style="font-size:13px;margin-top:5px;">登録が完了しました。</div>'}
+  ['username','person','votes','comment','reason'].forEach(id=>document.getElementById(id).value='');document.getElementById('category').value='';
+  await Promise.all([loadAll(),loadMine()]);
+ }catch(e){result.className='result warning';result.innerHTML=`<div class="result-title">⚠️ ${escapeHtml(e.message)}</div>`}
+ finally{setTimeout(()=>{isRegistering=false;button.disabled=false;button.textContent='登録する'},1500)}
 }
 
-
-// 部門一覧をスプレッドシートから取得
-async function loadCategories() {
-  const select = document.getElementById('category');
-  try {
-    const response = await fetch(API_URL + '?action=categories');
-    const result = await response.json();
-    if (!result.success) throw new Error(result.message || '部門一覧を取得できませんでした。');
-    const categories = result.data || [];
-    if (categories.length === 0) {
-      select.innerHTML = '<option value="">部門が登録されていません</option>';
-      select.disabled = true;
-      return;
-    }
-    select.innerHTML = '<option value="">部門を選択してください</option>' +
-      categories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('');
-    select.disabled = false;
-  } catch (error) {
-    select.innerHTML = '<option value="">部門を読み込めませんでした</option>';
-    select.disabled = true;
-  }
+function renderCategoryTotals(data,id){
+ const c=document.getElementById(id);if(!c)return;const m=new Map();
+ (data||[]).forEach(i=>{if(i.status==='削除済み')return;const k=String(i.category||'').trim();if(!k)return;m.set(k,(m.get(k)||0)+(Number(i.votes)||0))});
+ if(!m.size){c.innerHTML='<div class="empty" style="grid-column:1/-1;padding:8px;">集計できる登録はまだありません。</div>';return}
+ c.innerHTML=Array.from(m.entries()).map(([k,v])=>`<div class="compact-total-card"><div class="compact-total-category">${escapeHtml(k)}</div><div class="compact-total-votes"><strong>${escapeHtml(v)}</strong>票</div></div>`).join('');
 }
-
-
-// 登録
-async function registerData() {
-
-  if (isRegistering) return;
-
-  const username =
-    document.getElementById('username').value.trim();
-
-  const person =
-    document.getElementById('person').value.trim();
-
-  const category =
-    document.getElementById('category').value.trim();
-
-  const votes =
-    document.getElementById('votes').value.trim();
-
-  const comment =
-    document.getElementById('comment').value.trim();
-
-  const result =
-    document.getElementById('result');
-
-  const button =
-    document.getElementById('registerButton');
-
-
-  if (!username || !person || !category || !votes) {
-
-    result.className = 'result warning';
-
-    result.innerHTML =
-      '<div class="result-title">⚠️ すべての項目を入力してください。</div>';
-
-    return;
-  }
-
-
-  if (
-    !Number.isInteger(Number(votes)) ||
-    Number(votes) <= 0
-  ) {
-
-    result.className = 'result warning';
-
-    result.innerHTML =
-      '<div class="result-title">⚠️ 交換票数は1以上の整数で入力してください。</div>';
-
-    return;
-  }
-
-
-  const confirmed = confirm(
-    'この内容で登録しますか？\n\n' +
-    'Xユーザー名：' + username + '\n' +
-    '担当：' + person + '\n' +
-    '部門：' + category + '\n' +
-    '交換票数：' + votes + '票'
-  );
-
-  if (!confirmed) return;
-
-
-  isRegistering = true;
-  button.disabled = true;
-  button.textContent = '登録中...';
-
-  result.className = 'result';
-
-  result.innerHTML =
-    '<div class="loading">登録しています...</div>';
-
-
-  try {
-
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'register',
-        username: username,
-        person: person,
-        category: category,
-        votes: Number(votes),
-        comment: comment,
-        anonymousId: getAnonymousId()
-      })
-    });
-
-    const data = await response.json();
-
-
-    if (!data.success) {
-      throw new Error(
-        data.message || '登録に失敗しました。'
-      );
-    }
-
-
-    if (data.duplicate) {
-      let previousHtml = '';
-      (data.previousData || []).forEach(item => {
-        const deleted = item.status === '削除済み';
-        previousHtml += `
-          <div class="previous-item" style="${deleted ? 'text-decoration:line-through;color:#777;' : ''}">
-            <strong>${escapeHtml(item.username)}</strong><br>
-            担当：${escapeHtml(item.person)}<br>
-            部門：${escapeHtml(item.category)}<br>
-            交換票数：${escapeHtml(item.votes)}票<br>
-            コメント：${escapeHtml(item.comment || 'なし')}<br>
-            登録日時：${escapeHtml(item.registeredAt)}
-            ${deleted ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>' : ''}
-          </div>`;
-      });
-      result.className = 'result warning';
-      result.innerHTML = `
-        <div class="result-title">⚠️ このユーザー名は、この部門ですでに登録されています</div>
-        <div style="margin-top:6px;font-size:13px;">今回の登録は完了しています。<br>同じユーザー名＋同じ部門の過去登録が ${data.duplicateCount}件 あります。</div>
-        <div class="previous-list"><strong>同じ部門の過去データ</strong>${previousHtml}</div>`;
-    } else if (data.hasOtherCategories) {
-      let otherHtml = '';
-      (data.otherCategoryData || []).forEach(item => {
-        const deleted = item.status === '削除済み';
-        otherHtml += `
-          <div class="previous-item" style="${deleted ? 'text-decoration:line-through;color:#777;' : ''}">
-            <strong>${escapeHtml(item.username)}</strong><br>
-            担当：${escapeHtml(item.person)}<br>
-            部門：${escapeHtml(item.category)}<br>
-            交換票数：${escapeHtml(item.votes)}票<br>
-            コメント：${escapeHtml(item.comment || 'なし')}<br>
-            登録日時：${escapeHtml(item.registeredAt)}
-            ${deleted ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>' : ''}
-          </div>`;
-      });
-      result.className = 'result success';
-      result.innerHTML = `
-        <div class="result-title">✅ この部門での重複はありません！</div>
-        <div style="font-size:13px;margin-top:5px;">登録が完了しました。<br>なお、このXユーザー名は別部門で ${data.otherCategoryCount}件 の登録があります。</div>
-        <div class="previous-list"><strong>別部門の登録情報</strong>${otherHtml}</div>`;
-    } else {
-      result.className = 'result success';
-      result.innerHTML = `
-        <div class="result-title">✅ 現時点で重複はありません！</div>
-        <div style="font-size:13px;margin-top:5px;">登録が完了しました。</div>`;
-    }
-
-
-    document.getElementById('username').value = '';
-    document.getElementById('person').value = '';
-    document.getElementById('category').value = '';
-    document.getElementById('votes').value = '';
-    document.getElementById('comment').value = '';
-
-    await Promise.all([
-      loadCategories(),
-      loadAll(),
-      loadMine()
-    ]);
-
-
-  } catch (error) {
-
-    result.className = 'result warning';
-
-    result.innerHTML = `
-      <div class="result-title">
-        ⚠️ ${escapeHtml(error.message)}
-      </div>
-    `;
-
-  } finally {
-
-    setTimeout(() => {
-      isRegistering = false;
-      button.disabled = false;
-      button.textContent = '登録する';
-    }, 1500);
-  }
+async function loadAll(){
+ const t=document.getElementById('allTable');
+ try{const r=await fetch(API_URL+'?action=list'),x=await r.json();if(!x.success)throw new Error(x.message);allPublicData=x.data||[];renderCategoryTotals(allPublicData,'allCategoryTotals');document.getElementById('allCount').textContent=`（${allPublicData.length}件）`;renderAllTable()}
+ catch(e){t.innerHTML='<tr><td colspan="9" class="empty">データを読み込めませんでした。</td></tr>'}
 }
-
-
-
-function renderCategoryTotals(data, elementId) {
-  const container = document.getElementById(elementId);
-  if (!container) return;
-
-  const totals = new Map();
-
-  (data || []).forEach(item => {
-    if (item.status === '削除済み') return;
-
-    const category = String(item.category || '').trim();
-    if (!category) return;
-
-    const votes = Number(item.votes) || 0;
-    totals.set(category, (totals.get(category) || 0) + votes);
-  });
-
-  if (totals.size === 0) {
-    container.innerHTML =
-      '<div class="empty" style="grid-column:1/-1;padding:8px;">集計できる登録はまだありません。</div>';
-    return;
-  }
-
-  container.innerHTML = Array.from(totals.entries())
-    .map(([category, votes]) => `
-      <div class="compact-total-card">
-        <div class="compact-total-category">${escapeHtml(category)}</div>
-        <div class="compact-total-votes"><strong>${escapeHtml(votes)}</strong>票</div>
-      </div>
-    `)
-    .join('');
+function renderAllTable(){
+ const t=document.getElementById('allTable'),sel=selectedCategories(),data=sel.length?allPublicData.filter(i=>sel.includes(String(i.category||''))):allPublicData;
+ if(!data.length){t.innerHTML='<tr><td colspan="9" class="empty">該当する登録はありません。</td></tr>';return}
+ t.innerHTML=data.map(i=>{const del=i.status==='削除済み',conf=i.confirmed==='確定済み';return `<tr class="${del?'deleted-row':''}"><td>${escapeHtml(i.registeredAt)}</td><td><strong>${escapeHtml(i.username)}</strong></td><td>${escapeHtml(i.person)}</td><td>${escapeHtml(i.category)}</td><td>${escapeHtml(i.votes)}票</td><td>${escapeHtml(i.comment||'')}</td><td>${escapeHtml(i.reason||'')}</td><td class="status-cell">${del?'<span class="status-deleted">削除済み</span>':'<span class="status-active">登録中</span>'}</td><td class="status-cell">${conf?'<span class="confirmed-badge">確定済み</span>':'未確定'}</td></tr>`}).join('');
 }
-
-
-// 全登録
-async function loadAll() {
-
-  const tbody =
-    document.getElementById('allTable');
-
-  try {
-
-    const response =
-      await fetch(API_URL + '?action=list');
-
-    const result =
-      await response.json();
-
-
-    if (!result.success) {
-      throw new Error(result.message);
-    }
-
-
-    const data = result.data || [];
-
-    renderCategoryTotals(data, 'allCategoryTotals');
-
-    document.getElementById('allCount').textContent =
-      `（${data.length}件）`;
-
-
-    if (data.length === 0) {
-
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="7" class="empty">
-            まだ登録はありません。
-          </td>
-        </tr>
-      `;
-
-      return;
-    }
-
-
-    tbody.innerHTML =
-      data.map(item => {
-
-        const deleted =
-          item.status === '削除済み';
-
-        return `
-          <tr class="${deleted ? 'deleted-row' : ''}">
-
-            <td>${escapeHtml(item.registeredAt)}</td>
-
-            <td>
-              <strong>
-                ${escapeHtml(item.username)}
-              </strong>
-            </td>
-
-            <td>${escapeHtml(item.person)}</td>
-
-            <td>${escapeHtml(item.category)}</td>
-
-            <td>${escapeHtml(item.votes)}票</td>
-
-            <td>${escapeHtml(item.comment || '')}</td>
-
-            <td class="status-cell">
-              ${
-                deleted
-                ? '<span class="status-deleted">削除済み</span>'
-                : '<span class="status-active">登録中</span>'
-              }
-            </td>
-
-          </tr>
-        `;
-
-      }).join('');
-
-
-  } catch (error) {
-
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8" class="empty">
-          データを読み込めませんでした。
-        </td>
-      </tr>
-    `;
-  }
+async function loadMine(){
+ const t=document.getElementById('myTable');
+ try{
+  const r=await fetch(API_URL+'?action=my&anonymousId='+encodeURIComponent(getAnonymousId())),x=await r.json();if(!x.success)throw new Error(x.message);const data=x.data||[];
+  renderCategoryTotals(data,'myCategoryTotals');document.getElementById('myCount').textContent=`（${data.length}件）`;
+  if(!data.length){t.innerHTML='<tr><td colspan="10" class="empty">このブラウザからの登録はまだありません。</td></tr>';return}
+  t.innerHTML=data.map(i=>{const del=i.status==='削除済み',conf=i.confirmed==='確定済み',id=escapeHtml(i.registrationId),cat=encodeURIComponent(i.category||'');
+   return `<tr class="${del?'deleted-row':''}"><td>${escapeHtml(i.registeredAt)}</td><td><strong>${escapeHtml(i.username)}</strong></td><td>${escapeHtml(i.person)}</td><td>${escapeHtml(i.category)}</td><td>${escapeHtml(i.votes)}票</td><td>${escapeHtml(i.comment||'')}</td><td>${escapeHtml(i.reason||'')}</td><td class="status-cell">${del?'<span class="status-deleted">削除済み</span>':'<span class="status-active">登録中</span>'}</td><td class="status-cell">${conf?'<span class="confirmed-badge">確定済み</span>':'未確定'}</td><td class="status-cell">${del?'―':conf?'確定済み':`<button class="edit-button" onclick="openEdit('${id}','${cat}')">編集</button><button class="confirm-button" onclick="confirmRegistration('${id}','${cat}')">確定</button><button class="delete-button" onclick="deleteRegistration('${id}')">削除</button>`}</td></tr>
+   ${(!del&&!conf)?`<tr id="editrow-${id}" style="display:none;"><td colspan="10"><div class="edit-box"><label>コメント（任意）</label><input id="edit-comment-${id}" type="text" value="${escapeHtml(i.comment||'')}"><label style="margin-top:8px;">理由（確定時は必須）</label><textarea id="edit-reason-${id}" rows="3">${escapeHtml(i.reason||'')}</textarea><div class="edit-actions"><button class="edit-button" onclick="saveEdit('${id}','${cat}')">保存</button><button class="delete-button" onclick="closeEdit('${id}')">キャンセル</button></div></div></td></tr>`:''}`}).join('');
+ }catch(e){t.innerHTML='<tr><td colspan="10" class="empty">データを読み込めませんでした。</td></tr>'}
 }
-
-
-// 自分の登録
-async function loadMine() {
-
-  const tbody =
-    document.getElementById('myTable');
-
-  try {
-
-    const url =
-      API_URL +
-      '?action=my&anonymousId=' +
-      encodeURIComponent(getAnonymousId());
-
-    const response =
-      await fetch(url);
-
-    const result =
-      await response.json();
-
-
-    if (!result.success) {
-      throw new Error(result.message);
-    }
-
-
-    const data =
-      result.data || [];
-
-    renderCategoryTotals(data, 'myCategoryTotals');
-
-    document.getElementById('myCount').textContent =
-      `（${data.length}件）`;
-
-
-    if (data.length === 0) {
-
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="8" class="empty">
-            このブラウザからの登録はまだありません。
-          </td>
-        </tr>
-      `;
-
-      return;
-    }
-
-
-    tbody.innerHTML =
-      data.map(item => {
-
-        const deleted =
-          item.status === '削除済み';
-
-        return `
-          <tr class="${deleted ? 'deleted-row' : ''}">
-
-            <td>${escapeHtml(item.registeredAt)}</td>
-
-            <td>
-              <strong>
-                ${escapeHtml(item.username)}
-              </strong>
-            </td>
-
-            <td>${escapeHtml(item.person)}</td>
-
-            <td>${escapeHtml(item.category)}</td>
-
-            <td>${escapeHtml(item.votes)}票</td>
-
-            <td>${escapeHtml(item.comment || '')}</td>
-
-            <td class="status-cell">
-              ${
-                deleted
-                  ? '<span class="status-deleted">削除済み</span>'
-                  : '<span class="status-active">登録中</span>'
-              }
-            </td>
-
-            <td class="status-cell">
-              ${
-                deleted
-                  ? '―'
-                  : `
-                    <button
-                      class="delete-button"
-                      onclick="deleteRegistration('${item.registrationId}')"
-                    >
-                      削除
-                    </button>
-                  `
-              }
-            </td>
-
-          </tr>
-        `;
-
-      }).join('');
-
-
-  } catch (error) {
-
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="7" class="empty">
-          データを読み込めませんでした。
-        </td>
-      </tr>
-    `;
-  }
+function openEdit(id){const r=document.getElementById('editrow-'+id);if(r)r.style.display='table-row'}
+function closeEdit(id){const r=document.getElementById('editrow-'+id);if(r)r.style.display='none'}
+async function saveEdit(id,catEncoded){
+ const category=decodeURIComponent(catEncoded),comment=document.getElementById('edit-comment-'+id).value.trim(),reason=document.getElementById('edit-reason-'+id).value.trim();
+ try{
+  if(reason){const x=await checkSimilarReason(reason,category,id);if(!x.success)throw new Error(x.message||'理由の確認に失敗しました。');if(x.similar&&!confirm('⚠️ 理由が似ています。このまま変更しますか？'))return}
+  const x=await postApi({action:'edit',registrationId:id,anonymousId:getAnonymousId(),comment,reason});if(!x.success)throw new Error(x.message||'変更できませんでした。');alert('変更しました。');await Promise.all([loadMine(),loadAll()])
+ }catch(e){alert('変更できませんでした。
+'+e.message)}
 }
+async function confirmRegistration(id,catEncoded){
+ const category=decodeURIComponent(catEncoded);
+ const row=document.getElementById('editrow-'+id),reasonEl=document.getElementById('edit-reason-'+id);
+ let reason=reasonEl?reasonEl.value.trim():'';
+ if(!reason){
+  const own=await fetch(API_URL+'?action=my&anonymousId='+encodeURIComponent(getAnonymousId())).then(r=>r.json());
+  const item=(own.data||[]).find(i=>i.registrationId===id);reason=String(item?.reason||'').trim();
+ }
+ if(!reason){alert('⚠️ 理由を入力してから確定してください。');openEdit(id);return}
+ try{
+  const sim=await checkSimilarReason(reason,category,id);if(!sim.success)throw new Error(sim.message||'理由の確認に失敗しました。');if(sim.similar&&!confirm('⚠️ 理由が似ています。このまま確定しますか？'))return;
+  if(!confirm('この登録を確定しますか？
 
-
-// 削除
-async function deleteRegistration(registrationId) {
-
-  const ok = confirm(
-    'この登録を削除しますか？\n\n' +
-    '削除後も登録履歴は残り、重複チェックの対象になります。'
-  );
-
-  if (!ok) return;
-
-
-  try {
-
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'delete',
-        registrationId: registrationId,
-        anonymousId: getAnonymousId()
-      })
-    });
-
-    const result =
-      await response.json();
-
-
-    if (!result.success) {
-      throw new Error(result.message);
-    }
-
-
-    await Promise.all([
-      loadMine(),
-      loadAll()
-    ]);
-
-
-  } catch (error) {
-
-    alert(
-      '削除できませんでした。\n' +
-      error.message
-    );
-  }
+確定後は、このブラウザからコメント・理由を変更できなくなります。'))return;
+  const x=await postApi({action:'confirm',registrationId:id,anonymousId:getAnonymousId()});if(!x.success){if(x.reasonRequired){alert('⚠️ 理由を入力してから確定してください。');openEdit(id);return}throw new Error(x.message||'確定できませんでした.')}
+  alert('確定しました。');await Promise.all([loadMine(),loadAll()])
+ }catch(e){alert('確定できませんでした。
+'+e.message)}
 }
+async function deleteRegistration(id){
+ if(!confirm('この登録を削除しますか？
 
-
-// 初期表示
-document.addEventListener(
-  'DOMContentLoaded',
-  async () => {
-
-    getAnonymousId();
-
-    await Promise.all([
-      loadCategories(),
-      loadAll(),
-      loadMine()
-    ]);
-  }
-);
-
+削除後も登録履歴は残り、重複チェックの対象になります。'))return;
+ try{const x=await postApi({action:'delete',registrationId:id,anonymousId:getAnonymousId()});if(!x.success)throw new Error(x.message);await Promise.all([loadMine(),loadAll()])}catch(e){alert('削除できませんでした。
+'+e.message)}
+}
+document.addEventListener('DOMContentLoaded',async()=>{getAnonymousId();await loadCategories();await Promise.all([loadAll(),loadMine()])});
 </script>
 
 </body>
