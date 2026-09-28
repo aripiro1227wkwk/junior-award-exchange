@@ -672,14 +672,15 @@ async function registerData(){
  if(!username||!person||!category||!votes){result.className='result warning';result.innerHTML='<div class="result-title">⚠️ 必須項目を入力してください。</div>';return}
  if(!Number.isInteger(Number(votes))||Number(votes)<=0){result.className='result warning';result.innerHTML='<div class="result-title">⚠️ 交換票数は1以上の整数で入力してください。</div>';return}
  if(reason){try{const x=await checkSimilarReason(reason,category);if(!x.success)throw new Error(x.message||'理由の確認に失敗しました。');if(x.similar&&!confirm('⚠️ 理由が似ています。このまま登録しますか？'))return}catch(e){result.className='result warning';result.innerHTML=`<div class="result-title">⚠️ ${escapeHtml(e.message)}</div>`;return}}
- if(!confirm('この内容で登録しますか？
-
-Xユーザー名：'+username+'
-担当：'+person+'
-部門：'+category+'
-交換票数：'+votes+'票
-コメント：'+(comment||'なし')+'
-理由：'+(reason||'未入力')))return;
+ if(!confirm(
+  'この内容で登録しますか？\n\n' +
+  'Xユーザー名：' + username + '\n' +
+  '担当：' + person + '\n' +
+  '部門：' + category + '\n' +
+  '交換票数：' + votes + '票\n' +
+  'コメント：' + (comment || 'なし') + '\n' +
+  '理由：' + (reason || '未入力')
+)) return;
  isRegistering=true;button.disabled=true;button.textContent='登録中...';result.className='result';result.innerHTML='<div class="loading">登録しています...</div>';
  try{
   const d=await postApi({action:'register',username,person,category,votes:Number(votes),comment,reason,anonymousId:getAnonymousId()});
