@@ -564,7 +564,7 @@ textarea:focus{outline:2px solid #b40000;border-color:#b40000}
 
       <tbody id="myTable">
         <tr>
-          <td colspan="8" class="loading">読み込み中...</td>
+          <td colspan="10" class="loading">読み込み中...</td>
         </tr>
       </tbody>
     </table>
@@ -617,7 +617,7 @@ textarea:focus{outline:2px solid #b40000;border-color:#b40000}
 
       <tbody id="allTable">
         <tr>
-          <td colspan="7" class="loading">読み込み中...</td>
+          <td colspan="9" class="loading">読み込み中...</td>
         </tr>
       </tbody>
     </table>
@@ -735,7 +735,8 @@ async function saveEdit(id,catEncoded){
 }catch(e){
   alert('変更できませんでした。\n' + e.message);
 }
-｝
+}
+
 async function confirmRegistration(id,catEncoded){
  const category=decodeURIComponent(catEncoded);
  const row=document.getElementById('editrow-'+id),reasonEl=document.getElementById('edit-reason-'+id);
@@ -789,8 +790,42 @@ try{
   alert('確定できませんでした。\n' + e.message);
 }
 }
+
+async function deleteRegistration(id){
+  if(!confirm(
+    'この登録を削除しますか？\n\n' +
+    '削除後も登録履歴は残り、重複チェックの対象になります。'
+  )) return;
+
+  try{
+    const x=await postApi({
+      action:'delete',
+      registrationId:id,
+      anonymousId:getAnonymousId()
+    });
+
+    if(!x.success){
+      throw new Error(x.message || '削除できませんでした。');
+    }
+
+    await Promise.all([
+      loadMine(),
+      loadAll()
+    ]);
+
+  }catch(e){
+    alert('削除できませんでした。\n' + e.message);
+  }
 }
-document.addEventListener('DOMContentLoaded',async()=>{getAnonymousId();await loadCategories();await Promise.all([loadAll(),loadMine()])});
+
+document.addEventListener('DOMContentLoaded',async()=>{
+  getAnonymousId();
+  await loadCategories();
+  await Promise.all([
+    loadAll(),
+    loadMine()
+  ]);
+});
 </script>
 
 </body>
