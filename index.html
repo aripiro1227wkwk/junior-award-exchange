@@ -732,8 +732,8 @@ async function saveEdit(id,catEncoded){
  try{
   if(reason){const x=await checkSimilarReason(reason,category,id);if(!x.success)throw new Error(x.message||'理由の確認に失敗しました。');if(x.similar&&!confirm('⚠️ 理由が似ています。このまま変更しますか？'))return}
   const x=await postApi({action:'edit',registrationId:id,anonymousId:getAnonymousId(),comment,reason});if(!x.success)throw new Error(x.message||'変更できませんでした。');alert('変更しました。');await Promise.all([loadMine(),loadAll()])
- }catch(e){alert('変更できませんでした。
-'+e.message)}
+}catch(e){
+  alert('変更できませんでした。\n' + e.message);
 }
 async function confirmRegistration(id,catEncoded){
  const category=decodeURIComponent(catEncoded);
