@@ -333,6 +333,57 @@ footer {
     min-width: 720px;
   }
 }
+
+.compact-totals {
+  margin: 10px 0 14px;
+}
+
+.compact-totals-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.compact-totals-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.compact-total-card {
+  border: 1px solid #f0cccc;
+  border-radius: 8px;
+  overflow: hidden;
+  text-align: center;
+  background: white;
+}
+
+.compact-total-category {
+  background: #fff1f1;
+  padding: 5px 4px;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1.35;
+}
+
+.compact-total-votes {
+  padding: 5px 4px 6px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.compact-total-votes strong {
+  color: #b40000;
+  font-size: 20px;
+  margin-right: 2px;
+}
+
+@media (max-width: 700px) {
+  .compact-totals-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 </style>
 </head>
 
@@ -409,6 +460,16 @@ footer {
       >
     </div>
 
+    <div style="grid-column:1 / -1;">
+      <label for="comment">コメント（任意）</label>
+      <input
+        id="comment"
+        type="text"
+        placeholder="任意 例:比率違い10:1"
+        autocomplete="off"
+      >
+    </div>
+
   </div>
 
   <button
@@ -452,6 +513,13 @@ footer {
     自分の登録として判別できなくなります。
   </div>
 
+  <div class="compact-totals">
+    <div class="compact-totals-title">部門別 合計（自分の登録分）</div>
+    <div id="myCategoryTotals" class="compact-totals-grid">
+      <div class="loading" style="grid-column:1/-1;">集計中...</div>
+    </div>
+  </div>
+
   <div class="table-guide">
     ← 表は左右にスクロールできます →
   </div>
@@ -465,6 +533,7 @@ footer {
           <th>担当</th>
           <th>部門</th>
           <th>交換票数</th>
+          <th>コメント</th>
           <th>状態</th>
           <th>操作</th>
         </tr>
@@ -472,7 +541,7 @@ footer {
 
       <tbody id="myTable">
         <tr>
-          <td colspan="7" class="loading">読み込み中...</td>
+          <td colspan="8" class="loading">読み込み中...</td>
         </tr>
       </tbody>
     </table>
@@ -491,6 +560,13 @@ footer {
     削除済みの登録も履歴として表示されます。
   </div>
 
+  <div class="compact-totals">
+    <div class="compact-totals-title">部門別 合計（みんなの登録分）</div>
+    <div id="allCategoryTotals" class="compact-totals-grid">
+      <div class="loading" style="grid-column:1/-1;">集計中...</div>
+    </div>
+  </div>
+
   <div class="table-guide">
     ← 表は左右にスクロールできます →
   </div>
@@ -504,13 +580,14 @@ footer {
           <th>担当</th>
           <th>部門</th>
           <th>交換票数</th>
+          <th>コメント</th>
           <th>状態</th>
         </tr>
       </thead>
 
       <tbody id="allTable">
         <tr>
-          <td colspan="6" class="loading">読み込み中...</td>
+          <td colspan="7" class="loading">読み込み中...</td>
         </tr>
       </tbody>
     </table>
@@ -611,6 +688,9 @@ async function registerData() {
   const votes =
     document.getElementById('votes').value.trim();
 
+  const comment =
+    document.getElementById('comment').value.trim();
+
   const result =
     document.getElementById('result');
 
@@ -674,6 +754,7 @@ async function registerData() {
         person: person,
         category: category,
         votes: Number(votes),
+        comment: comment,
         anonymousId: getAnonymousId()
       })
     });
@@ -698,6 +779,7 @@ async function registerData() {
             担当：${escapeHtml(item.person)}<br>
             部門：${escapeHtml(item.category)}<br>
             交換票数：${escapeHtml(item.votes)}票<br>
+            コメント：${escapeHtml(item.comment || 'なし')}<br>
             登録日時：${escapeHtml(item.registeredAt)}
             ${deleted ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>' : ''}
           </div>`;
@@ -717,6 +799,7 @@ async function registerData() {
             担当：${escapeHtml(item.person)}<br>
             部門：${escapeHtml(item.category)}<br>
             交換票数：${escapeHtml(item.votes)}票<br>
+            コメント：${escapeHtml(item.comment || 'なし')}<br>
             登録日時：${escapeHtml(item.registeredAt)}
             ${deleted ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>' : ''}
           </div>`;
@@ -738,6 +821,7 @@ async function registerData() {
     document.getElementById('person').value = '';
     document.getElementById('category').value = '';
     document.getElementById('votes').value = '';
+    document.getElementById('comment').value = '';
 
     await Promise.all([
       loadCategories(),
@@ -767,6 +851,40 @@ async function registerData() {
 }
 
 
+
+function renderCategoryTotals(data, elementId) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
+
+  const totals = new Map();
+
+  (data || []).forEach(item => {
+    if (item.status === '削除済み') return;
+
+    const category = String(item.category || '').trim();
+    if (!category) return;
+
+    const votes = Number(item.votes) || 0;
+    totals.set(category, (totals.get(category) || 0) + votes);
+  });
+
+  if (totals.size === 0) {
+    container.innerHTML =
+      '<div class="empty" style="grid-column:1/-1;padding:8px;">集計できる登録はまだありません。</div>';
+    return;
+  }
+
+  container.innerHTML = Array.from(totals.entries())
+    .map(([category, votes]) => `
+      <div class="compact-total-card">
+        <div class="compact-total-category">${escapeHtml(category)}</div>
+        <div class="compact-total-votes"><strong>${escapeHtml(votes)}</strong>票</div>
+      </div>
+    `)
+    .join('');
+}
+
+
 // 全登録
 async function loadAll() {
 
@@ -789,6 +907,8 @@ async function loadAll() {
 
     const data = result.data || [];
 
+    renderCategoryTotals(data, 'allCategoryTotals');
+
     document.getElementById('allCount').textContent =
       `（${data.length}件）`;
 
@@ -797,7 +917,7 @@ async function loadAll() {
 
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="empty">
+          <td colspan="7" class="empty">
             まだ登録はありません。
           </td>
         </tr>
@@ -830,6 +950,8 @@ async function loadAll() {
 
             <td>${escapeHtml(item.votes)}票</td>
 
+            <td>${escapeHtml(item.comment || '')}</td>
+
             <td class="status-cell">
               ${
                 deleted
@@ -848,7 +970,7 @@ async function loadAll() {
 
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="empty">
+        <td colspan="8" class="empty">
           データを読み込めませんでした。
         </td>
       </tr>
@@ -885,6 +1007,8 @@ async function loadMine() {
     const data =
       result.data || [];
 
+    renderCategoryTotals(data, 'myCategoryTotals');
+
     document.getElementById('myCount').textContent =
       `（${data.length}件）`;
 
@@ -893,7 +1017,7 @@ async function loadMine() {
 
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="empty">
+          <td colspan="8" class="empty">
             このブラウザからの登録はまだありません。
           </td>
         </tr>
@@ -925,6 +1049,8 @@ async function loadMine() {
             <td>${escapeHtml(item.category)}</td>
 
             <td>${escapeHtml(item.votes)}票</td>
+
+            <td>${escapeHtml(item.comment || '')}</td>
 
             <td class="status-cell">
               ${
