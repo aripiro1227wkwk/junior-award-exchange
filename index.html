@@ -754,12 +754,58 @@ async function confirmRegistration(id,catEncoded){
  }catch(e){alert('確定できませんでした。
 '+e.message)}
 }
-async function deleteRegistration(id){
- if(!confirm('この登録を削除しますか？
+if(!confirm(
+  'この登録を確定しますか？\n\n' +
+  '確定後は、このブラウザからコメント・理由を変更できなくなります。'
+)) return;
 
-削除後も登録履歴は残り、重複チェックの対象になります。'))return;
- try{const x=await postApi({action:'delete',registrationId:id,anonymousId:getAnonymousId()});if(!x.success)throw new Error(x.message);await Promise.all([loadMine(),loadAll()])}catch(e){alert('削除できませんでした。
-'+e.message)}
+const x = await postApi({
+  action:'confirm',
+  registrationId:id,
+  anonymousId:getAnonymousId()
+});
+
+if(!x.success){
+  if(x.reasonRequired){
+    alert('⚠️ 理由を入力してから確定してください。');
+    openEdit(id);
+    return;
+  }
+  throw new Error(x.message || '確定できませんでした。');
+}
+
+alert('確定しました。');
+await Promise.all([loadMine(),loadAll()]);
+
+}catch(e){
+  alert('確定できませんでした。\n' + e.message);
+}
+}
+
+async function deleteRegistration(id){
+
+  if(!confirm(
+    'この登録を削除しますか？\n\n' +
+    '削除後も登録履歴は残り、重複チェックの対象になります。'
+  )) return;
+
+  try{
+    const x = await postApi({
+      action:'delete',
+      registrationId:id,
+      anonymousId:getAnonymousId()
+    });
+
+    if(!x.success) throw new Error(x.message);
+
+    await Promise.all([
+      loadMine(),
+      loadAll()
+    ]);
+
+  }catch(e){
+    alert('削除できませんでした。\n' + e.message);
+  }
 }
 document.addEventListener('DOMContentLoaded',async()=>{getAnonymousId();await loadCategories();await Promise.all([loadAll(),loadMine()])});
 </script>
