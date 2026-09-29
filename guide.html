@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>使い方｜ジュニア大賞 交換先登録リスト</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f5f5;
+      color: #222;
+      font-family: "Meiryo UI", "メイリオ", sans-serif;
+      line-height: 1.8;
+    }
+
+    header {
+      background: #b40000;
+      color: #fff;
+      padding: 18px 16px;
+    }
+
+    .header-inner {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.4;
+    }
+
+    .guide-badge {
+      flex-shrink: 0;
+      padding: 5px 10px;
+      border: 1px solid #fff;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    main {
+      width: min(920px, calc(100% - 24px));
+      margin: 20px auto 40px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 14px;
+      color: #b40000;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .page-title {
+      margin: 0 0 5px;
+      color: #b40000;
+      font-size: 23px;
+    }
+
+    .page-description {
+      margin: 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    details {
+      background: #fff;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 16px 18px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #b40000;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "＋";
+      float: right;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    details[open] summary::after {
+      content: "－";
+    }
+
+    .details-body {
+      padding: 0 18px 18px;
+      white-space: pre-line;
+      font-size: 14px;
+    }
+
+    .notice {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: #fff1f1;
+      border-left: 4px solid #b40000;
+      border-radius: 6px;
+    }
+
+    .warning {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: #ffe5e5;
+      border: 1px solid #b40000;
+      border-radius: 8px;
+      color: #8b0000;
+      font-weight: bold;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      color: #b40000;
+      font-size: 18px;
+    }
+
+    .update-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .update-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .update-date {
+      font-weight: bold;
+      color: #b40000;
+    }
+
+    .contact a {
+      color: #b40000;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+    footer {
+      padding: 8px 16px 30px;
+      text-align: center;
+      color: #777;
+      font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 17px;
+      }
+
+      main {
+        margin-top: 14px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      summary {
+        padding: 15px 16px;
+      }
+
+      .details-body {
+        padding: 0 16px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-inner">
+      <h1>ジュニア大賞 交換先登録リスト</h1>
+      <span class="guide-badge">使い方</span>
+    </div>
+  </header>
+
+  <main>
+
+    <a class="back-link" href="index.html">← 登録リストに戻る</a>
+
+    <section class="card">
+      <h2 class="page-title">使い方</h2>
+      <p class="page-description">
+        サイトの登録方法や各機能について確認できます。
+      </p>
+    </section>
+
+    <details>
+      <summary>1. このサイトについて</summary>
+      <div class="details-body">非公式のファンサイトです。
+
+できること
+・ジュニア大賞 枠交換先の情報共有
+・枠交換の重複有無の確認
+・理由が同じにならないように確認
+・自身の枠交換の管理
+
+<div class="warning">大賞オプチャ内のみでご利用ください。
+大賞オプチャ外への情報漏洩は厳禁です。</div></div>
+    </details>
+
+    <details>
+      <summary>2. 交換先を登録する</summary>
+      <div class="details-body">① 交換先 Xユーザー名を入力
+② 担当を入力
+③ 部門を選択
+④ 交換票数を入力
+⑤ 必要に応じてコメントを入力
+⑥ 理由を入力
+⑦「登録する」を押して内容を確認</div>
+    </details>
+
+    <details>
+      <summary>3. 理由について</summary>
+      <div class="details-body">交換先に記載してもらう理由を明記してください。
+
+交換先が重複して交換していないか、を確認するため、大賞オプチャ内だけでも理由をばらけさせることが目的です。
+
+<div class="notice">理由は登録時は任意、確定時は必須です。</div>
+
+同じ部門内に似た理由がある場合は警告が表示されます。
+警告が出ても登録・変更・確定は可能です。</div>
+    </details>
+
+    <details>
+      <summary>4. 登録後に編集する</summary>
+      <div class="details-body"><div class="notice">確定前に可能な作業です。</div>
+
+【編集可能なもの】
+・担当
+・コメント
+・理由
+
+投票理由を変更したい場合やあとから投票理由を考えたい場合にご活用ください。</div>
+    </details>
+
+    <details>
+      <summary>5. 登録を確定する</summary>
+      <div class="details-body">手元に投票用紙が来て、相手との取引が確定しましたら、ボタンを押してください。
+
+<div class="notice">確定ボタンを押す際は、理由の入力が必須になります。</div>
+
+確定ボタンを押すことで、
+ご自身の取引が仮約束から本確定になったことを確認できます。
+また他のユーザーが先に投票確定している人との理由を分けることもできます。
+
+押さなくても支障はありませんが、仮約束と取引本確定の明確化のためにもご活用ください。</div>
+    </details>
+
+    <details>
+      <summary>6. 削除について</summary>
+      <div class="details-body">自分が登録した情報は削除できます。
+削除後も登録履歴は残り、重複チェックの対象になります。
+
+仮約束後に取引がなくなった場合や重複交換が明らかになった場合などにご活用ください。
+
+<div class="notice">【完全削除したい場合】
+入力ミスの場合など完全削除したい場合は、サイト管理人のみ削除可能になってます。「コメント」に「入力ミスのため完全削除依頼」と記載いただいてから削除をお願い致します。
+
+コメント入力せず削除してしまった場合は、ご自身の登録した内容を全てスクショの上、サイト管理人までご連絡ください。</div></div>
+    </details>
+
+    <details>
+      <summary>7. 自分が登録した情報を見る</summary>
+      <div class="details-body">ご自身がブラウザから登録した情報と、部門別の合計票数を確認できます。
+
+ご自身の交換管理にご活用ください。</div>
+    </details>
+
+    <details>
+      <summary>8. みんなの登録情報を見る</summary>
+      <div class="details-body">他のユーザーの登録情報を確認できます。
+部門のチェックボックスを使って、複数部門で絞り込むこともできます。
+
+部門投票理由を確認したい場合や重複交換をされていないか確認する際にご活用ください。</div>
+    </details>
+
+    <details>
+      <summary>9. 注意事項</summary>
+      <div class="details-body"><div class="warning">大賞オプチャ外への情報漏洩は厳禁です。
+
+ご友人含め大賞オプチャに参加されていない方へのURL共有も厳禁です。</div>
+
+同じ端末、同じブラウザから登録した場合のみご自身の登録情報に反映されます。
+
+比率違い等同じユーザー/同じ部門での登録情報が出てくることがあります。
+重複交換でなくても、エラーが出ますのでご了承ください。
+
+<strong>相手先の交換数を確認し、必ず投票理由を変えて交換を実施してください。</strong></div>
+    </details>
+
+    <details>
+      <summary>10. よくある質問</summary>
+      <div class="details-body">更新中</div>
+    </details>
+
+    <section class="card">
+      <h2 class="section-title">アップデート情報</h2>
+
+      <div class="update-item">
+        <div class="update-date">2026/09/29②</div>
+        <div>・「担当」編集可能に変更</div>
+        <div>・使い方ページを追加</div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-date">2026/09/29①</div>
+        <div>・理由欄を追加</div>
+        <div>・登録後のコメント・理由編集に対応</div>
+        <div>・確定機能を追加</div>
+        <div>・理由の類似チェックを追加</div>
+        <div>・部門別の絞り込みに対応</div>
+      </div>
+    </section>
+
+    <section class="card contact">
+      <h2 class="section-title">お問い合わせ</h2>
+
+      <p>
+        本サイトは第33回以降も使用予定です。<br>
+        元木担のみなさまが使いやすく、ストレスなくジュニア大賞に取り組めるようサポートしたいと考えております。
+      </p>
+
+      <p>
+        サイトに関する質問や不具合、追加してほしい項目などお気軽にご連絡ください。
+      </p>
+
+      <p>
+        管理人：ほげーた<br>
+        X：
+        <a href="https://x.com/mtkwk_info1126"
+           target="_blank"
+           rel="noopener noreferrer">@mtkwk_info1126</a><br>
+
+        mond：
+        <a href="https://mond.how/mtkwk_info1126"
+           target="_blank"
+           rel="noopener noreferrer">質問・削除依頼はこちら</a>
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    非公式ファンサイト
+  </footer>
+
+</body>
+</html>
