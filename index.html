@@ -399,13 +399,37 @@ textarea:focus{outline:2px solid #b40000;border-color:#b40000}
 .edit-box{margin-top:8px;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;min-width:250px}
 .edit-box input,.edit-box textarea{margin-top:5px}
 .edit-actions{margin-top:8px;display:flex;gap:6px}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header-top h1 {
+  margin: 0;
+}
+
+.guide-link {
+  flex-shrink: 0;
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  text-decoration: none;
+} 
 </style>
 </head>
 
 <body>
 
 <header>
-  <h1>ジュニア大賞 交換先登録リスト</h1>
+  <div class="header-top">
+    <h1>ジュニア大賞 交換先登録リスト</h1>
+    <a href="guide.html" class="guide-link">使い方</a>
+  </div>
   <p>交換先情報の共有・重複確認用</p>
 </header>
 
