@@ -722,16 +722,16 @@ async function loadMine(){
   if(!data.length){t.innerHTML='<tr><td colspan="10" class="empty">このブラウザからの登録はまだありません。</td></tr>';return}
   t.innerHTML=data.map(i=>{const del=i.status==='削除済み',conf=i.confirmed==='確定済み',id=escapeHtml(i.registrationId),cat=encodeURIComponent(i.category||'');
    return `<tr class="${del?'deleted-row':''}"><td>${escapeHtml(i.registeredAt)}</td><td><strong>${escapeHtml(i.username)}</strong></td><td>${escapeHtml(i.person)}</td><td>${escapeHtml(i.category)}</td><td>${escapeHtml(i.votes)}票</td><td>${escapeHtml(i.comment||'')}</td><td>${escapeHtml(i.reason||'')}</td><td class="status-cell">${del?'<span class="status-deleted">削除済み</span>':'<span class="status-active">登録中</span>'}</td><td class="status-cell">${conf?'<span class="confirmed-badge">確定済み</span>':'未確定'}</td><td class="status-cell">${del?'―':conf?'確定済み':`<button class="edit-button" onclick="openEdit('${id}','${cat}')">編集</button><button class="confirm-button" onclick="confirmRegistration('${id}','${cat}')">確定</button><button class="delete-button" onclick="deleteRegistration('${id}')">削除</button>`}</td></tr>
-   ${(!del&&!conf)?`<tr id="editrow-${id}" style="display:none;"><td colspan="10"><div class="edit-box"><label>コメント（任意）</label><input id="edit-comment-${id}" type="text" value="${escapeHtml(i.comment||'')}"><label style="margin-top:8px;">理由（確定時は必須）</label><textarea id="edit-reason-${id}" rows="3">${escapeHtml(i.reason||'')}</textarea><div class="edit-actions"><button class="edit-button" onclick="saveEdit('${id}','${cat}')">保存</button><button class="delete-button" onclick="closeEdit('${id}')">キャンセル</button></div></div></td></tr>`:''}`}).join('');
+   ${(!del&&!conf)?`<tr id="editrow-${id}" style="display:none;"><td colspan="10"><div class="edit-box"><label>担当</label><input id="edit-person-${id}" type="text" value="${escapeHtml(i.person||'')}"><label>コメント（任意）</label><input id="edit-comment-${id}" type="text" value="${escapeHtml(i.comment||'')}"><label style="margin-top:8px;">理由（確定時は必須）</label><textarea id="edit-reason-${id}" rows="3">${escapeHtml(i.reason||'')}</textarea><div class="edit-actions"><button class="edit-button" onclick="saveEdit('${id}','${cat}')">保存</button><button class="delete-button" onclick="closeEdit('${id}')">キャンセル</button></div></div></td></tr>`:''}`}).join('');
  }catch(e){t.innerHTML='<tr><td colspan="10" class="empty">データを読み込めませんでした。</td></tr>'}
 }
 function openEdit(id){const r=document.getElementById('editrow-'+id);if(r)r.style.display='table-row'}
 function closeEdit(id){const r=document.getElementById('editrow-'+id);if(r)r.style.display='none'}
 async function saveEdit(id,catEncoded){
- const category=decodeURIComponent(catEncoded),comment=document.getElementById('edit-comment-'+id).value.trim(),reason=document.getElementById('edit-reason-'+id).value.trim();
+ const category=decodeURIComponent(catEncoded),person=document.getElementById('edit-person-'+id).value.trim(),comment=document.getElementById('edit-comment-'+id).value.trim(),reason=document.getElementById('edit-reason-'+id).value.trim();
  try{
   if(reason){const x=await checkSimilarReason(reason,category,id);if(!x.success)throw new Error(x.message||'理由の確認に失敗しました。');if(x.similar&&!confirm('⚠️ 理由が似ています。このまま変更しますか？'))return}
-  const x=await postApi({action:'edit',registrationId:id,anonymousId:getAnonymousId(),comment,reason});if(!x.success)throw new Error(x.message||'変更できませんでした。');alert('変更しました。');await Promise.all([loadMine(),loadAll()])
+  const x=await postApi({action:'edit',registrationId:id,anonymousId:getAnonymousId(),person,comment,reason});if(!x.success)throw new Error(x.message||'変更できませんでした。');alert('変更しました。');await Promise.all([loadMine(),loadAll()])
 }catch(e){
   alert('変更できませんでした。\n' + e.message);
 }
