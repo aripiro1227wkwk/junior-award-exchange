@@ -808,12 +808,7 @@ function renderPreviousItems(items) {
         コメント：${escapeHtml(item.comment || 'なし')}<br>
         理由：${escapeHtml(item.reason || '未入力')}<br>
         登録日時：${escapeHtml(item.registeredAt)}
-        $ {
-          deleted ? '<br><strong style="color:#b40000;
-          text-decoration:none;
-          display:inline-block;
-          ">削除済み</strong>' : '';
-        }
+        ${deleted ? '<br><strong style="color:#b40000;text-decoration:none;display:inline-block;">削除済み</strong>' : ''}
       </div>
     `;
     }).join('');
@@ -986,14 +981,10 @@ function renderAllTable() {
         <td>${escapeHtml(item.comment || '')}</td>
         <td>${escapeHtml(item.reason || '')}</td>
         <td class="status-cell">
-          $ {
-            deleted ? '<span class="status-deleted">削除済み</span>' : '<span class="status-active">登録中</span>';
-          }
+          ${deleted ? '<span class="status-deleted">削除済み</span>' : '<span class="status-active">登録中</span>'}
         </td>
         <td class="status-cell">
-          $ {
-            confirmed ? '<span class="confirmed-badge">確定済み</span>' : '未確定';
-          }
+          ${confirmed ? '<span class="confirmed-badge">確定済み</span>' : '未確定'}
         </td>
       </tr>
     `;
@@ -1043,14 +1034,10 @@ async function loadMine() {
           <td>${escapeHtml(item.comment || '')}</td>
           <td>${escapeHtml(item.reason || '')}</td>
           <td class="status-cell">
-            $ {
-              deleted ? '<span class="status-deleted">削除済み</span>' : '<span class="status-active">登録中</span>';
-            }
+            ${deleted ? '<span class="status-deleted">削除済み</span>' : '<span class="status-active">登録中</span>'}
           </td>
           <td class="status-cell">
-            $ {
-              confirmed ? '<span class="confirmed-badge">確定済み</span>' : '未確定';
-            }
+            ${confirmed ? '<span class="confirmed-badge">確定済み</span>' : '未確定'}
           </td>
           <td class="status-cell">${actions}</td>
         </tr>
