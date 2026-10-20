@@ -500,6 +500,22 @@ textarea:focus {
     top: 32px;
   }
 }  
+/* 自分の登録欄だけに重複エラーを表示 */
+.duplicate-warning {
+  margin-top: 7px;
+  padding: 7px 9px;
+  border: 1px solid #b40000;
+  border-radius: 6px;
+  background: #fff5f5;
+  color: #b40000;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: normal;
+  min-width: 180px;
+}
+
 </style>
 
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -636,7 +652,8 @@ textarea:focus {
 
   <div class="note" style="margin-top:-7px;margin-bottom:14px;">
     このブラウザから登録した情報だけ表示されます。<br>
-    自分が登録した情報は、確定前なら「担当」「部門」「コメント」「理由」を編集できます。<br>
+    自分が登録した情報は、確定前なら「Xユーザー名」「担当」「部門」「交換票数」「コメント」「理由」を編集できます。<br>
+    同じXユーザー名・部門の登録がある場合は、重複エラーが継続表示されます。<br>
     「確定」には理由の入力が必要です。確定後は自分では編集できません。<br>
     自分が登録した情報のみ「削除」できます。削除後も登録履歴は残り、
     重複チェックの対象になります。<br>
@@ -915,7 +932,8 @@ async function registerData() {
             document.getElementById(id).value = '';
         });
         document.getElementById('category').value = '';
-        await Promise.all([loadAll(), loadMine()]);
+        await loadAll();
+        await loadMine();
     }
     catch (error) {
         result.className = 'result warning';
@@ -990,6 +1008,25 @@ function renderAllTable() {
     `;
     }).join('');
 }
+function normalizeDuplicateUsername(value) {
+    return String(value || '')
+        .trim()
+        .replace(/^@+/, '')
+        .toLowerCase();
+}
+
+function normalizeDuplicateCategory(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+function countRegistrationDuplicates(item) {
+    return allPublicData.filter(other =>
+        String(other.registrationId) !== String(item.registrationId) &&
+        normalizeDuplicateUsername(other.username) === normalizeDuplicateUsername(item.username) &&
+        normalizeDuplicateCategory(other.category) === normalizeDuplicateCategory(item.category)
+    ).length;
+}
+
 async function loadMine() {
     const table = document.getElementById('myTable');
     try {
@@ -1010,6 +1047,10 @@ async function loadMine() {
             const confirmed = item.confirmed === '確定済み';
             const id = escapeHtml(item.registrationId);
             const categoryEncoded = encodeURIComponent(item.category || '');
+            const duplicateCount = countRegistrationDuplicates(item);
+            const duplicateMessage = duplicateCount > 0
+                ? `<div class="duplicate-warning" role="status">⚠️ 重複エラー：同じXユーザー名・部門の登録がほかに${duplicateCount}件あります（削除済みも含む）。</div>`
+                : '';
             const options = categoryList.map(category => `
         <option value="${escapeHtml(category)}" ${category === item.category ? 'selected' : ''}>
           ${escapeHtml(category)}
@@ -1027,7 +1068,7 @@ async function loadMine() {
             const mainRow = `
         <tr class="${deleted ? 'deleted-row' : ''}">
           <td>${escapeHtml(item.registeredAt)}</td>
-          <td><strong>${escapeHtml(item.username)}</strong></td>
+          <td><strong>${escapeHtml(item.username)}</strong>${duplicateMessage}</td>
           <td>${escapeHtml(item.person)}</td>
           <td>${escapeHtml(item.category)}</td>
           <td>${escapeHtml(item.votes)}票</td>
@@ -1049,6 +1090,12 @@ async function loadMine() {
         <tr id="editrow-${id}" style="display:none;">
           <td colspan="10">
             <div class="edit-box">
+              <label for="edit-username-${id}">Xユーザー名</label>
+              <input id="edit-username-${id}" type="text" value="${escapeHtml(item.username || '')}" autocomplete="off">
+
+              <label for="edit-votes-${id}">交換票数</label>
+              <input id="edit-votes-${id}" type="number" min="1" step="1" inputmode="numeric" value="${escapeHtml(item.votes)}">
+
               <label for="edit-person-${id}">担当</label>
               <input id="edit-person-${id}" type="text" value="${escapeHtml(item.person || '')}">
 
@@ -1083,17 +1130,27 @@ function openEdit(id) { const r = document.getElementById('editrow-' + id); if (
 function closeEdit(id) { const r = document.getElementById('editrow-' + id); if (r)
     r.style.display = 'none'; }
 async function saveEdit(id) {
+    const username = document.getElementById('edit-username-' + id).value.trim();
+    const votesRaw = document.getElementById('edit-votes-' + id).value.trim();
+    const votes = Number(votesRaw);
     const person = document.getElementById('edit-person-' + id).value.trim();
     const category = document.getElementById('edit-category-' + id).value.trim();
     const comment = document.getElementById('edit-comment-' + id).value.trim();
     const reason = document.getElementById('edit-reason-' + id).value.trim();
-    if (!person || !category) {
-        alert('担当と部門を入力してください。');
+
+    if (!username || !person || !category || !votesRaw) {
+        alert('Xユーザー名・担当・部門・交換票数を入力してください。');
         return;
     }
+    if (!Number.isInteger(votes) || votes <= 0) {
+        alert('交換票数は1以上の整数で入力してください。');
+        return;
+    }
+
     try {
-        // 部門変更後の同じXユーザー名・部門の重複を警告（削除済みも対象）
-        const myResponse = await fetch(API_URL + '?action=my&anonymousId=' + encodeURIComponent(getAnonymousId()));
+        const myResponse = await fetch(
+            API_URL + '?action=my&anonymousId=' + encodeURIComponent(getAnonymousId())
+        );
         const myResult = await myResponse.json();
         if (!myResult.success) {
             throw new Error(myResult.message || '登録情報の確認に失敗しました。');
@@ -1102,15 +1159,7 @@ async function saveEdit(id) {
         if (!current || current.confirmed === '確定済み' || current.status === '削除済み') {
             throw new Error('この登録は編集できません。');
         }
-        if (current.category !== category) {
-            const duplicate = allPublicData.filter(item => item.registrationId !== id &&
-                String(item.username || '').replace(/^@+/, '').trim().toLowerCase() ===
-                    String(current.username || '').replace(/^@+/, '').trim().toLowerCase() &&
-                String(item.category || '').trim().toLowerCase() === category.toLowerCase());
-            if (duplicate.length && !confirm(`⚠️ このXユーザー名は変更先の部門にすでに${duplicate.length}件登録されています（削除済みも含む）。\nこのまま変更しますか？`)) {
-                return;
-            }
-        }
+
         if (reason) {
             const similarity = await checkSimilarReason(reason, category, id);
             if (!similarity.success) {
@@ -1120,17 +1169,26 @@ async function saveEdit(id) {
                 return;
             }
         }
-        if (!confirm('次の内容で保存しますか？\n\n' +
+
+        const normalizedUsername = '@' + username.replace(/^@+/, '');
+        if (!confirm(
+            '次の内容で保存しますか？\n\n' +
+            'Xユーザー名：' + normalizedUsername + '\n' +
             '担当：' + person + '\n' +
             '部門：' + category + '\n' +
+            '交換票数：' + votes + '票\n' +
             'コメント：' + (comment || 'なし') + '\n' +
-            '理由：' + (reason || '未入力'))) {
+            '理由：' + (reason || '未入力')
+        )) {
             return;
         }
+
         const result = await postApi({
             action: 'edit',
             registrationId: id,
             anonymousId: getAnonymousId(),
+            username: normalizedUsername,
+            votes,
             person,
             category,
             comment,
@@ -1139,10 +1197,11 @@ async function saveEdit(id) {
         if (!result.success) {
             throw new Error(result.message || '変更できませんでした。');
         }
-        alert('変更しました。');
-        await Promise.all([loadMine(), loadAll()]);
-    }
-    catch (error) {
+        // 全体一覧を先に読み込んでから、自分の重複表示を再計算する。
+        await loadAll();
+        await loadMine();
+        alert('変更しました。重複がある場合は自分の登録欄に表示されます。');
+    } catch (error) {
         alert('変更できませんでした。\n' + error.message);
     }
 }
@@ -1185,10 +1244,8 @@ async function confirmRegistration(id, catEncoded) {
             throw new Error(x.message || '確定できませんでした。');
         }
         alert('確定しました。');
-        await Promise.all([
-            loadMine(),
-            loadAll()
-        ]);
+        await loadAll();
+        await loadMine();
     }
     catch (e) {
         alert('確定できませんでした。\n' + e.message);
@@ -1207,10 +1264,8 @@ async function deleteRegistration(id) {
         if (!x.success) {
             throw new Error(x.message || '削除できませんでした。');
         }
-        await Promise.all([
-            loadMine(),
-            loadAll()
-        ]);
+        await loadAll();
+        await loadMine();
     }
     catch (e) {
         alert('削除できませんでした。\n' + e.message);
@@ -1219,10 +1274,8 @@ async function deleteRegistration(id) {
 document.addEventListener('DOMContentLoaded', async () => {
     getAnonymousId();
     await loadCategories();
-    await Promise.all([
-        loadAll(),
-        loadMine()
-    ]);
+    await loadAll();
+    await loadMine();
 });
 </script>
 
