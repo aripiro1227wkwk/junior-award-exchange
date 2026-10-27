@@ -516,6 +516,16 @@ textarea:focus {
   min-width: 180px;
 }
 
+
+/* 自分の登録に一致する他の人の公開登録詳細 */
+.other-duplicate-row td { background: #fffafa; padding: 10px 12px 14px; }
+.other-duplicate-details { border: 1px solid #b40000; border-radius: 8px; padding: 10px; background: #fff5f5; font-size: 13px; }
+.other-duplicate-details summary { color: #b40000; font-weight: bold; cursor: pointer; line-height: 1.7; }
+.other-duplicate-details .previous-item { overflow-wrap: anywhere; }
+.other-duplicate-details summary .detail-close-label { display: none; }
+.other-duplicate-details[open] summary .detail-open-label { display: none; }
+.other-duplicate-details[open] summary .detail-close-label { display: inline; }
+
 </style>
 
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -1027,6 +1037,26 @@ function countRegistrationDuplicates(item) {
     ).length;
 }
 
+function renderOtherDuplicateDetails(item, ownRegistrationIds) {
+    const matches = allPublicData.filter(other =>
+        String(other.registrationId) !== String(item.registrationId) &&
+        !ownRegistrationIds.has(String(other.registrationId)) &&
+        normalizeDuplicateUsername(other.username) === normalizeDuplicateUsername(item.username) &&
+        normalizeDuplicateCategory(other.category) === normalizeDuplicateCategory(item.category)
+    );
+    if (!matches.length) return '';
+    return `
+      <tr class="other-duplicate-row">
+        <td colspan="10">
+          <details class="other-duplicate-details">
+            <summary><span class="detail-open-label">エラー詳細をみる（${matches.length}件）</span><span class="detail-close-label">エラー詳細を閉じる（${matches.length}件）</span></summary>
+            <div class="previous-list">${renderPreviousItems(matches)}</div>
+          </details>
+        </td>
+      </tr>
+    `;
+}
+
 async function loadMine() {
     const table = document.getElementById('myTable');
     try {
@@ -1042,6 +1072,7 @@ async function loadMine() {
             table.innerHTML = '<tr><td colspan="10" class="empty">このブラウザからの登録はまだありません。</td></tr>';
             return;
         }
+        const ownRegistrationIds = new Set(data.map(item => String(item.registrationId)));
         table.innerHTML = data.map(item => {
             const deleted = item.status === '削除済み';
             const confirmed = item.confirmed === '確定済み';
@@ -1083,8 +1114,9 @@ async function loadMine() {
           <td class="status-cell">${actions}</td>
         </tr>
       `;
+            const otherDuplicateDetails = renderOtherDuplicateDetails(item, ownRegistrationIds);
             if (deleted || confirmed) {
-                return mainRow;
+                return mainRow + otherDuplicateDetails;
             }
             const editRow = `
         <tr id="editrow-${id}" style="display:none;">
@@ -1118,7 +1150,7 @@ async function loadMine() {
           </td>
         </tr>
       `;
-            return mainRow + editRow;
+            return mainRow + otherDuplicateDetails + editRow;
         }).join('');
     }
     catch (error) {
