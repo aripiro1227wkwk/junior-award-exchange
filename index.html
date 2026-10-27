@@ -16,6 +16,8 @@ body {
   background: #f7f7f7;
   color: #111;
   font-family: "Meiryo UI", Meiryo, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 header {
@@ -526,6 +528,39 @@ textarea:focus {
 .other-duplicate-details summary .detail-close-label { display: none; }
 .other-duplicate-details[open] summary .detail-open-label { display: none; }
 .other-duplicate-details[open] summary .detail-close-label { display: inline; }
+
+@media (max-width: 700px) {
+  .other-duplicate-row td {
+    padding: 8px 8px 12px;
+  }
+  .other-duplicate-details {
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .other-duplicate-details summary {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .other-duplicate-details .previous-list {
+    margin-top: 8px;
+  }
+  .other-duplicate-details .previous-item {
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .other-duplicate-details .previous-item strong {
+    font-size: 14px;
+  }
+  .duplicate-source-label {
+    margin-top: 10px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
 
 </style>
 
