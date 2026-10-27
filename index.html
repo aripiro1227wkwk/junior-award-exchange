@@ -517,11 +517,12 @@ textarea:focus {
 }
 
 
-/* 自分の登録に一致する他の人の公開登録詳細 */
+/* 自分の登録に一致する重複登録の公開詳細 */
 .other-duplicate-row td { background: #fffafa; padding: 10px 12px 14px; }
 .other-duplicate-details { border: 1px solid #b40000; border-radius: 8px; padding: 10px; background: #fff5f5; font-size: 13px; }
 .other-duplicate-details summary { color: #b40000; font-weight: bold; cursor: pointer; line-height: 1.7; }
 .other-duplicate-details .previous-item { overflow-wrap: anywhere; }
+.duplicate-source-label { margin-top: 12px; font-weight: bold; font-size: 12px; color: #555; }
 .other-duplicate-details summary .detail-close-label { display: none; }
 .other-duplicate-details[open] summary .detail-open-label { display: none; }
 .other-duplicate-details[open] summary .detail-close-label { display: inline; }
@@ -1040,17 +1041,21 @@ function countRegistrationDuplicates(item) {
 function renderOtherDuplicateDetails(item, ownRegistrationIds) {
     const matches = allPublicData.filter(other =>
         String(other.registrationId) !== String(item.registrationId) &&
-        !ownRegistrationIds.has(String(other.registrationId)) &&
         normalizeDuplicateUsername(other.username) === normalizeDuplicateUsername(item.username) &&
         normalizeDuplicateCategory(other.category) === normalizeDuplicateCategory(item.category)
     );
     if (!matches.length) return '';
+    const detailItems = matches.map(other => {
+        const sourceLabel = ownRegistrationIds.has(String(other.registrationId))
+            ? 'このブラウザから登録した情報' : 'ほかの登録情報';
+        return `<div class="duplicate-source-label">${sourceLabel}</div>${renderPreviousItems([other])}`;
+    }).join('');
     return `
       <tr class="other-duplicate-row">
         <td colspan="10">
           <details class="other-duplicate-details">
             <summary><span class="detail-open-label">エラー詳細をみる（${matches.length}件）</span><span class="detail-close-label">エラー詳細を閉じる（${matches.length}件）</span></summary>
-            <div class="previous-list">${renderPreviousItems(matches)}</div>
+            <div class="previous-list">${detailItems}</div>
           </details>
         </td>
       </tr>
